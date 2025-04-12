@@ -7,12 +7,13 @@
     "start": "bun  --watch src/index.ts",
     "seed": "bun run prisma/seed.ts",
     "watch": "chokidar 'swagger.yaml' -c 'bun start'"
-
   },
   "dependencies": {
     "@prisma/client": "latest",
     "@types/bcrypt": "^5.0.2",
+    "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.12",
@@ -21,6 +22,8 @@
     "@types/passport-facebook": "^3.0.3",
     "@types/passport-google-oauth2": "^0.1.10",
     "@types/passport-google-oauth20": "^2.0.16",
+    "@types/swagger-ui-express": "^4.1.8",
+    "@types/yamljs": "^0.2.34",
     "axios": "latest",
     "bcrypt": "latest",
     "bcryptjs": "latest",

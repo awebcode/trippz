@@ -9,15 +9,15 @@ export const registerSchema = z
       .min(10, "Phone number must be at least 10 characters")
       .optional(),
     password: z.string().min(8, "Password must be at least 8 characters"),
-    confirm_password: z.string(),
+    // confirm_password: z.string(),
     role: z.enum(["USER", "SERVICE_PROVIDER", "TRAVEL_AGENCY", "ADMIN"]).default("USER"),
     date_of_birth: z.string().optional(),
     address: z.string().optional(),
   })
-  .refine((data) => data.password === data.confirm_password, {
-    message: "Passwords don't match",
-    path: ["confirm_password"],
-  });
+  // .refine((data) => data.password === data.confirm_password, {
+  //   message: "Passwords don't match",
+  //   path: ["confirm_password"],
+  // });
 
 export const loginSchema = z
   .object({

@@ -59,7 +59,7 @@ components:
         - full_name
         - email
         - password
-        - confirm_password
+        # - confirm_password
       properties:
         full_name:
           type: string
@@ -77,9 +77,9 @@ components:
           type: string
           minLength: 8
           example: "12345678"
-        confirm_password:
-          type: string
-          example: "12345678"
+        # confirm_password:
+        #   type: string
+        #   example: "12345678"
         role:
           type: string
           enum: [USER, SERVICE_PROVIDER, TRAVEL_AGENCY]

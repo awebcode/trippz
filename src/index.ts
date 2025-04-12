@@ -50,33 +50,30 @@ const corsOptions = {
 }
 app.use(cors(corsOptions))
 
-// API routes
-const apiRouter = express.Router()
+
 
 // Health check endpoint
-apiRouter.get("/health", (req, res) => {
+app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" })
 })
 
 // API documentation
-apiRouter.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 // API routes
-apiRouter.use("/auth", authRoutes)
-apiRouter.use("/users", userRoutes)
-apiRouter.use("/hotels", hotelRoutes)
-apiRouter.use("/flights", flightRoutes)
-apiRouter.use("/trips", tripRoutes)
-apiRouter.use("/bookings", bookingRoutes)
-apiRouter.use("/payments", paymentRoutes)
-apiRouter.use("/reviews", reviewRoutes)
-apiRouter.use("/providers", serviceProviderRoutes)
-apiRouter.use("/agencies", travelAgencyRoutes)
-apiRouter.use("/admin", adminRoutes)
-apiRouter.use("/", publicRoutes)
+app.use("/auth", authRoutes)
+app.use("/users", userRoutes)
+app.use("/hotels", hotelRoutes)
+app.use("/flights", flightRoutes)
+app.use("/trips", tripRoutes)
+app.use("/bookings", bookingRoutes)
+app.use("/payments", paymentRoutes)
+app.use("/reviews", reviewRoutes)
+app.use("/providers", serviceProviderRoutes)
+app.use("/agencies", travelAgencyRoutes)
+app.use("/admin", adminRoutes)
+app.use("/", publicRoutes)
 
-// Mount API router
-app.use("/api", apiRouter)
 
 // Error handling middleware
 app.use(notFoundHandler)
