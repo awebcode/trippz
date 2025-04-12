@@ -1,0 +1,77 @@
+2025-04-11 12:32:43:3243 [31merror[39m: [31mError sending verification email: API key is invalid[39m
+2025-04-11 12:32:43:3243 [31merror[39m: [31mError in sendVerificationEmail: Error: Failed to send verification email: API key is invalid[39m
+2025-04-11 12:32:43:3243 [31merror[39m: [31mError in register: Error: Failed to send verification email: API key is invalid[39m
+2025-04-11 12:32:43:3243 [31merror[39m: [31mError: Failed to register user[39m
+2025-04-11 12:32:43:3243 [31merror[39m: [31mError: Failed to register user[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/services/authService.ts:122:17)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
+2025-04-11 12:35:06:356 [31merror[39m: [31mError in register: Error: Email already in use[39m
+2025-04-11 12:35:06:356 [31merror[39m: [31mError: Email already in use[39m
+2025-04-11 12:35:06:356 [31merror[39m: [31mError: Email already in use[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/services/authService.ts:45:21)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
+2025-04-11 12:35:44:3544 [31merror[39m: [31mError in login: Error: Invalid email or phone number or password[39m
+2025-04-11 12:35:44:3544 [31merror[39m: [31mError: Invalid email or phone number or password[39m
+2025-04-11 12:35:44:3544 [31merror[39m: [31mError: Invalid email or phone number or password[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/services/authService.ts:151:19)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
+2025-04-11 12:37:34:3734 [31merror[39m: [31mValidation error: [{"path":"body.","message":"Unrecognized key(s) in object: 'new'"}][39m
+2025-04-11 12:37:34:3734 [31merror[39m: [31mError: Validation failed[39m
+2025-04-11 12:37:34:3734 [31merror[39m: [31mError: Validation failed[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/middleware/validateRequest.ts:86:19)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
+2025-04-11 12:39:24:3924 [31merror[39m: [31mError in login: Error: Invalid email or phone number or password[39m
+2025-04-11 12:39:24:3924 [31merror[39m: [31mError: Invalid email or phone number or password[39m
+2025-04-11 12:39:24:3924 [31merror[39m: [31mError: Invalid email or phone number or password[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/services/authService.ts:143:19)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
+2025-04-11 12:39:38:3938 [31merror[39m: [31mError in login: Error: Invalid email or phone number or password[39m
+2025-04-11 12:39:38:3938 [31merror[39m: [31mError: Invalid email or phone number or password[39m
+2025-04-11 12:39:38:3938 [31merror[39m: [31mError: Invalid email or phone number or password[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/services/authService.ts:143:19)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
+2025-04-11 12:47:23:4723 [31merror[39m: [31mError in register: Error: Email already in use[39m
+2025-04-11 12:47:23:4723 [31merror[39m: [31mError: Email already in use[39m
+2025-04-11 12:47:23:4723 [31merror[39m: [31mError: Email already in use[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/services/authService.ts:45:21)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
+2025-04-11 12:54:48:5448 [31merror[39m: [31mValidation error: [{"path":"body.email","message":"Invalid email address"}][39m
+2025-04-11 12:54:48:5448 [31merror[39m: [31mError: Validation failed[39m
+2025-04-11 12:54:48:5448 [31merror[39m: [31mError: Validation failed[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/middleware/validateRequest.ts:86:19)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
+2025-04-11 12:55:28:5528 [31merror[39m: [31mError sending password reset email: API key is invalid[39m
+2025-04-11 12:55:28:5528 [31merror[39m: [31mError in sendPasswordResetEmail: Error: Failed to send password reset email: API key is invalid[39m
+2025-04-11 12:55:28:5528 [31merror[39m: [31mError in forgotPassword: Error: Failed to send password reset email: API key is invalid[39m
+2025-04-11 12:55:28:5528 [31merror[39m: [31mError: Failed to process forgot password request[39m
+2025-04-11 12:55:28:5528 [31merror[39m: [31mError: Failed to process forgot password request[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/services/authService.ts:524:17)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
+2025-04-11 13:02:45:245 [31merror[39m: [31mError sending password reset email: API key is invalid[39m
+2025-04-11 13:02:45:245 [31merror[39m: [31mError in sendPasswordResetEmail: Error: Failed to send password reset email: API key is invalid[39m
+2025-04-11 13:02:45:245 [31merror[39m: [31mError in forgotPassword: Error: Failed to send password reset email: API key is invalid[39m
+2025-04-11 13:02:45:245 [31merror[39m: [31mError: Failed to process forgot password request[39m
+2025-04-11 13:02:45:245 [31merror[39m: [31mError: Failed to process forgot password request[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/services/authService.ts:524:17)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
+2025-04-11 13:04:28:428 [31merror[39m: [31mError sending password reset email: You can only send testing emails to your own email address (asikurrahaman997@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.[39m
+2025-04-11 13:04:28:428 [31merror[39m: [31mError in sendPasswordResetEmail: Error: Failed to send password reset email: You can only send testing emails to your own email address (asikurrahaman997@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.[39m
+2025-04-11 13:04:28:428 [31merror[39m: [31mError in forgotPassword: Error: Failed to send password reset email: You can only send testing emails to your own email address (asikurrahaman997@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.[39m
+2025-04-11 13:04:28:428 [31merror[39m: [31mError: Failed to process forgot password request[39m
+2025-04-11 13:04:28:428 [31merror[39m: [31mError: Failed to process forgot password request[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/services/authService.ts:524:17)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
+2025-04-11 13:06:54:654 [31merror[39m: [31mError sending password reset email: You can only send testing emails to your own email address (asikurrahaman997@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.[39m
+2025-04-11 13:06:54:654 [31merror[39m: [31mError in sendPasswordResetEmail: Error: Failed to send password reset email: You can only send testing emails to your own email address (asikurrahaman997@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.[39m
+2025-04-11 13:06:54:654 [31merror[39m: [31mError in forgotPassword: Error: Failed to send password reset email: You can only send testing emails to your own email address (asikurrahaman997@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.[39m
+2025-04-11 13:06:54:654 [31merror[39m: [31mError: Failed to process forgot password request[39m
+2025-04-11 13:06:54:654 [31merror[39m: [31mError: Failed to process forgot password request[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/services/authService.ts:524:17)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
+2025-04-11 13:07:20:720 [31merror[39m: [31mError sending password reset email: You can only send testing emails to your own email address (asikurrahaman997@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.[39m
+2025-04-11 13:07:20:720 [31merror[39m: [31mError in sendPasswordResetEmail: Error: Failed to send password reset email: You can only send testing emails to your own email address (asikurrahaman997@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.[39m
+2025-04-11 13:07:20:720 [31merror[39m: [31mError in forgotPassword: Error: Failed to send password reset email: You can only send testing emails to your own email address (asikurrahaman997@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.[39m
+2025-04-11 13:07:20:720 [31merror[39m: [31mError: Failed to process forgot password request[39m
+2025-04-11 13:07:20:720 [31merror[39m: [31mError: Failed to process forgot password request[39m
+[31m    at <anonymous> (/home/ot-42/projects/trippz/src/services/authService.ts:524:17)[39m
+[31m    at processTicksAndRejections (native:7:39)[39m
