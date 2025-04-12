@@ -82,7 +82,7 @@ app.use(errorHandler)
 // Start server
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`)
+  logger.info(`Server running on port http://localhost:${PORT}`)
 })
 
 export default app
