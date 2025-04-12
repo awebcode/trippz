@@ -98,9 +98,12 @@ export class PaymentService {
         ...booking,
         payment: payment,
       });
-
-      await SmsService.sendBookingConfirmationSms(booking.user.phone_number, booking.id);
-
+      if (booking.user.phone_number) {
+        await SmsService.sendBookingConfirmationSms(
+          booking.user.phone_number,
+          booking.id
+        );
+      }
       return {
         payment,
         message: "Payment processed successfully",
@@ -290,11 +293,7 @@ export class PaymentService {
       const payment = await prisma.payment.findUnique({
         where: { id: paymentId },
         include: {
-          booking: {
-            include: {
-              user: true,
-            },
-          },
+          booking: true,
           payment_details: true,
         },
       });
@@ -361,11 +360,17 @@ export class PaymentService {
         },
       });
 
-      // Send refund notification
-      await EmailService.sendRefundConfirmation(payment.booking.user.email, {
-        ...payment,
-        refund: refundResult,
+      const findUser = await prisma.user.findUnique({
+        where: { id: userId },
       });
+
+      // Send refund notification
+      if (findUser) {
+        await EmailService.sendRefundConfirmation(findUser?.email, {
+          ...payment,
+          refund: refundResult,
+        });
+      }
 
       return {
         message: "Payment refunded successfully",

@@ -29,7 +29,7 @@ passport.use(
           user = await prisma.user.create({
             data: {
               email: profile.emails?.[0].value as string,
-              full_name: profile.name?.givenName || "Google",
+              first_name: profile.name?.givenName || "Google",
               last_name: profile.name?.familyName || "User",
               phone_number: `google_${Date.now()}`, // Placeholder
               password_hash: crypto.randomBytes(16).toString("hex"), // Random password
@@ -104,7 +104,7 @@ passport.use(
           user = await prisma.user.create({
             data: {
               email: profile.emails?.[0].value as string,
-              full_name: profile.name?.givenName || "Facebook",
+             first_name: profile.name?.givenName || "Facebook",
               last_name: profile.name?.familyName || "User",
               phone_number: `facebook_${Date.now()}`, // Placeholder
               password_hash: crypto.randomBytes(16).toString("hex"), // Random password
@@ -164,6 +164,8 @@ passport.use(
       clientSecret: process.env.APPLE_CLIENT_SECRET as string,
       callbackURL: `${process.env.API_URL}/api/auth/apple/callback`,
       passReqToCallback: true,
+      teamID: process.env.APPLE_TEAM_ID as string,
+      keyID: process.env.APPLE_KEY_ID as string,
       authorizationURL: "",
       tokenURL: "",
     },
@@ -198,7 +200,7 @@ passport.use(
           user = await prisma.user.create({
             data: {
               email: tokenPayload.email,
-              full_name: firstName,
+              first_name: firstName,
               last_name: lastName,
               phone_number: `apple_${Date.now()}`, // Placeholder
               password_hash: crypto.randomBytes(16).toString("hex"), // Random password

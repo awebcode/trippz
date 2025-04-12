@@ -75,7 +75,9 @@ export class BookingService {
 
       if (user) {
         await EmailService.sendBookingConfirmation(user.email, booking)
-        await SmsService.sendBookingConfirmationSms(user.phone_number, booking.id)
+        if (user.phone_number) {
+          await SmsService.sendBookingConfirmationSms(user.phone_number, booking.id)
+        }
       }
 
       return booking

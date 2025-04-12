@@ -30,63 +30,70 @@ components:
         id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         full_name:
           type: string
-        last_name:
-          type: string
-          nullable: true
+          example: "Asikur Rahman"
         email:
           type: string
           format: email
+          example: "asikurrahaman997@gmail.com"
         role:
           type: string
-          enum: [USER, SERVICE_PROVIDER, ADMIN]
+          enum: [USER, SERVICE_PROVIDER, TRAVEL_AGENCY, ADMIN]
+          example: "USER"
         email_verified:
           type: boolean
+          example: false
         phone_verified:
           type: boolean
+          example: false
         profile_picture:
           type: string
           nullable: true
+          example: "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg"
 
     RegisterInput:
       type: object
       required:
         - full_name
-        # - last_name
         - email
-        # - phone_number
         - password
-        # - confirm_password
+        - confirm_password
       properties:
         full_name:
           type: string
           minLength: 2
-        # last_name:
-        #   type: string
-        #   minLength: 2
+          example: "Asikur Rahman"
         email:
           type: string
           format: email
-        # phone_number:
-        #   type: string
-        #   minLength: 10
+          example: "asikurrahaman997@gmail.com"
+        phone_number:
+          type: string
+          minLength: 10
+          example: "+8801712345678"
         password:
           type: string
           minLength: 8
-        # confirm_password:
-        #   type: string
-        # role:
-        #   type: string
-        #   enum: [USER, SERVICE_PROVIDER]
-        #   default: USER
-        # date_of_birth:
-        #   type: string
-        #   format: date
-        #   nullable: true
-        # address:
-        #   type: string
-        #   nullable: true
+          example: "12345678"
+        confirm_password:
+          type: string
+          example: "12345678"
+        role:
+          type: string
+          enum: [USER, SERVICE_PROVIDER, TRAVEL_AGENCY]
+          default: USER
+          example: "USER"
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          example: "1990-01-01"
+        address:
+          type: string
+          nullable: true
+          example: "123 Main St, Dhaka, Bangladesh"
 
     LoginInput:
       type: object
@@ -97,12 +104,10 @@ components:
         email:
           type: string
           format: email
-        phone_number:
-          type: string
-          minLength: 10
-          nullable: true
+          example: "asikurrahaman997@gmail.com"
         password:
           type: string
+          example: "12345678"
 
     ForgotPasswordInput:
       type: object
@@ -112,6 +117,7 @@ components:
         email:
           type: string
           format: email
+          example: "asikurrahaman997@gmail.com"
 
     ResetPasswordInput:
       type: object
@@ -122,11 +128,14 @@ components:
       properties:
         token:
           type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         password:
           type: string
           minLength: 8
+          example: "newpassword123"
         confirm_password:
           type: string
+          example: "newpassword123"
 
     VerifyEmailInput:
       type: object
@@ -135,6 +144,7 @@ components:
       properties:
         token:
           type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
     VerifyPhoneInput:
       type: object
@@ -145,6 +155,7 @@ components:
           type: string
           minLength: 6
           maxLength: 6
+          example: "123456"
 
     SocialLoginInput:
       type: object
@@ -155,8 +166,10 @@ components:
         provider:
           type: string
           enum: [GOOGLE, FACEBOOK, APPLE]
+          example: "GOOGLE"
         token:
           type: string
+          example: "ya29.a0AfB_byC3..."
 
     RefreshTokenInput:
       type: object
@@ -165,6 +178,7 @@ components:
       properties:
         refreshToken:
           type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
     Hotel:
       type: object
@@ -172,28 +186,35 @@ components:
         id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         name:
           type: string
+          example: "Marriott Hotel"
         address:
           type: string
+          example: "123 Main St, New York, NY"
         rating:
           type: number
           format: float
           minimum: 0
           maximum: 5
+          example: 4.5
         price_per_night:
           type: number
           format: float
+          example: 199.99
         amenities:
           type: array
           items:
             type: string
+          example: ["WiFi", "Pool", "Gym", "Restaurant"]
         available_rooms:
           type: integer
+          example: 10
         images:
           type: array
           items:
-            $ref: "#/components/schemas/Image"
+            $ref: '#/components/schemas/Image'
 
     Flight:
       type: object
@@ -201,29 +222,38 @@ components:
         id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         flight_number:
           type: string
+          example: "BA123"
         airline:
           type: string
+          example: "British Airways"
         departure_time:
           type: string
           format: date-time
+          example: "2023-12-01T10:00:00Z"
         arrival_time:
           type: string
           format: date-time
+          example: "2023-12-01T14:00:00Z"
         from_airport:
           type: string
+          example: "LHR"
         to_airport:
           type: string
+          example: "JFK"
         price:
           type: number
           format: float
+          example: 499.99
         seat_class:
           type: string
+          example: "Economy"
         images:
           type: array
           items:
-            $ref: "#/components/schemas/Image"
+            $ref: '#/components/schemas/Image'
 
     Trip:
       type: object
@@ -231,31 +261,39 @@ components:
         id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         user_id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
         trip_name:
           type: string
+          example: "European Adventure"
         description:
           type: string
+          example: "Explore the best of Europe with our comprehensive tour package."
         start_date:
           type: string
           format: date
+          example: "2023-12-01"
         end_date:
           type: string
           format: date
+          example: "2023-12-15"
         trip_type:
           type: string
           enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
+          example: "ADVENTURE"
         price:
           type: number
           format: float
+          example: 1999.99
         images:
           type: array
           items:
-            $ref: "#/components/schemas/Image"
+            $ref: '#/components/schemas/Image'
         user:
-          $ref: "#/components/schemas/User"
+          $ref: '#/components/schemas/User'
 
     Booking:
       type: object
@@ -263,36 +301,46 @@ components:
         id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         user_id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
         booking_type:
           type: string
           enum: [FLIGHT, HOTEL, TRIP]
+          example: "HOTEL"
         start_date:
           type: string
           format: date
+          example: "2023-12-01"
         end_date:
           type: string
           format: date
+          example: "2023-12-05"
         status:
           type: string
           enum: [PENDING, CONFIRMED, CANCELED, COMPLETED]
+          example: "CONFIRMED"
         total_price:
           type: number
           format: float
+          example: 799.96
         flight_id:
           type: string
           format: uuid
           nullable: true
+          example: null
         hotel_id:
           type: string
           format: uuid
           nullable: true
+          example: "123e4567-e89b-12d3-a456-426614174002"
         trip_id:
           type: string
           format: uuid
           nullable: true
+          example: null
 
     Payment:
       type: object
@@ -300,23 +348,29 @@ components:
         id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         booking_id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
         payment_method:
           type: string
           enum: [CREDIT_CARD, PAYPAL, GOOGLE_PAY, APPLE_PAY]
+          example: "CREDIT_CARD"
         amount_paid:
           type: number
           format: float
+          example: 799.96
         payment_status:
           type: string
           enum: [PENDING, SUCCESS, FAILED, REFUNDED]
+          example: "SUCCESS"
         payment_date:
           type: string
           format: date-time
+          example: "2023-11-25T14:30:00Z"
         payment_details:
-          $ref: "#/components/schemas/PaymentDetail"
+          $ref: '#/components/schemas/PaymentDetail'
 
     PaymentDetail:
       type: object
@@ -324,13 +378,17 @@ components:
         id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         transaction_id:
           type: string
+          example: "txn_1234567890"
         provider:
           type: string
+          example: "Stripe"
         refund_id:
           type: string
           nullable: true
+          example: null
 
     Review:
       type: object
@@ -338,31 +396,38 @@ components:
         id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         user_id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
         hotel_id:
           type: string
           format: uuid
           nullable: true
+          example: "123e4567-e89b-12d3-a456-426614174002"
         flight_id:
           type: string
           format: uuid
           nullable: true
+          example: null
         trip_id:
           type: string
           format: uuid
           nullable: true
+          example: null
         rating:
           type: number
           format: float
           minimum: 1
           maximum: 5
+          example: 4.5
         comment:
           type: string
           nullable: true
+          example: "Great experience! Would definitely recommend."
         user:
-          $ref: "#/components/schemas/User"
+          $ref: '#/components/schemas/User'
 
     Image:
       type: object
@@ -370,18 +435,23 @@ components:
         id:
           type: string
           format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         file_url:
           type: string
+          example: "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg"
         file_type:
           type: string
+          example: "image/jpeg"
 
     ApiResponse:
       type: object
       properties:
         success:
           type: boolean
+          example: true
         message:
           type: string
+          example: "Operation completed successfully"
         data:
           type: object
         errors:
@@ -391,8 +461,470 @@ components:
             properties:
               path:
                 type: string
+                example: "email"
               message:
                 type: string
+                example: "Email is required"
+
+    ServiceProvider:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        user_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
+        business_name:
+          type: string
+          example: "Adventure Tours"
+        business_address:
+          type: string
+          nullable: true
+          example: "123 Main St, New York, NY"
+        business_phone:
+          type: string
+          nullable: true
+          example: "+1234567890"
+        business_email:
+          type: string
+          format: email
+          nullable: true
+          example: "info@adventuretours.com"
+        website:
+          type: string
+          nullable: true
+          example: "https://www.adventuretours.com"
+        description:
+          type: string
+          nullable: true
+          example: "We provide exciting adventure tours around the world."
+        verified:
+          type: boolean
+          example: true
+        rating:
+          type: number
+          format: float
+          example: 4.8
+        user:
+          $ref: '#/components/schemas/User'
+
+    Service:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        provider_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
+        name:
+          type: string
+          example: "Mountain Hiking Tour"
+        description:
+          type: string
+          example: "Experience the thrill of hiking in the mountains with our expert guides."
+        price:
+          type: number
+          format: float
+          example: 99.99
+        duration:
+          type: integer
+          example: 180
+        location:
+          type: string
+          nullable: true
+          example: "Rocky Mountains"
+        category:
+          type: string
+          example: "Hiking"
+        availability:
+          type: object
+          nullable: true
+          example: {"monday": true, "tuesday": true, "wednesday": true, "thursday": true, "friday": true}
+        max_participants:
+          type: integer
+          nullable: true
+          example: 10
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        provider:
+          $ref: '#/components/schemas/ServiceProvider'
+
+    TravelAgency:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        user_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
+        agency_name:
+          type: string
+          example: "Global Travels"
+        agency_address:
+          type: string
+          nullable: true
+          example: "456 Broadway, New York, NY"
+        agency_phone:
+          type: string
+          nullable: true
+          example: "+1234567890"
+        agency_email:
+          type: string
+          format: email
+          nullable: true
+          example: "info@globaltravels.com"
+        website:
+          type: string
+          nullable: true
+          example: "https://www.globaltravels.com"
+        description:
+          type: string
+          nullable: true
+          example: "We offer comprehensive travel packages worldwide."
+        verified:
+          type: boolean
+          example: true
+        rating:
+          type: number
+          format: float
+          example: 4.7
+        user:
+          $ref: '#/components/schemas/User'
+
+    TravelPackage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        agency_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
+        name:
+          type: string
+          example: "European Adventure"
+        description:
+          type: string
+          example: "Explore the best of Europe with our comprehensive tour package."
+        price:
+          type: number
+          format: float
+          example: 1999.99
+        duration:
+          type: integer
+          example: 14
+        inclusions:
+          type: array
+          items:
+            type: string
+          example: ["Accommodation", "Breakfast", "Local Guide", "Transportation"]
+        exclusions:
+          type: array
+          items:
+            type: string
+          example: ["Flights", "Travel Insurance", "Personal Expenses"]
+        itinerary:
+          type: object
+          nullable: true
+          example: {"day1": "Arrival and city tour", "day2": "Museum visits", "day3": "Free day"}
+        max_travelers:
+          type: integer
+          nullable: true
+          example: 20
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        destinations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Destination'
+        agency:
+          $ref: '#/components/schemas/TravelAgency'
+
+    Destination:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          example: "Paris"
+        country:
+          type: string
+          example: "France"
+        city:
+          type: string
+          nullable: true
+          example: "Paris"
+        description:
+          type: string
+          example: "The capital of France, known for its art, culture, and history."
+        highlights:
+          type: array
+          items:
+            type: string
+          example: ["Eiffel Tower", "Louvre Museum", "Notre-Dame Cathedral"]
+        best_time_to_visit:
+          type: string
+          nullable: true
+          example: "Spring (April to June) or Fall (September to November)"
+        travel_tips:
+          type: array
+          items:
+            type: string
+          example: ["Learn basic French phrases", "Use the Metro for transportation", "Visit museums on the first Sunday of the month for free entry"]
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+
+    ServiceProviderProfileInput:
+      type: object
+      required:
+        - business_name
+      properties:
+        business_name:
+          type: string
+          minLength: 2
+          example: "Adventure Tours"
+        business_address:
+          type: string
+          example: "123 Main St, New York, NY"
+        business_phone:
+          type: string
+          example: "+1234567890"
+        business_email:
+          type: string
+          format: email
+          example: "info@adventuretours.com"
+        website:
+          type: string
+          format: uri
+          example: "https://www.adventuretours.com"
+        description:
+          type: string
+          example: "We provide exciting adventure tours around the world."
+
+    ServiceInput:
+      type: object
+      required:
+        - name
+        - description
+        - price
+        - duration
+        - category
+      properties:
+        name:
+          type: string
+          minLength: 2
+          example: "Mountain Hiking Tour"
+        description:
+          type: string
+          minLength: 10
+          example: "Experience the thrill of hiking in the mountains with our expert guides."
+        price:
+          type: number
+          format: float
+          minimum: 0
+          example: 99.99
+        duration:
+          type: integer
+          minimum: 1
+          example: 180
+        location:
+          type: string
+          example: "Rocky Mountains"
+        category:
+          type: string
+          example: "Hiking"
+        availability:
+          type: object
+          example: {"monday": true, "tuesday": true, "wednesday": true, "thursday": true, "friday": true}
+        max_participants:
+          type: integer
+          minimum: 1
+          example: 10
+
+    TravelAgencyProfileInput:
+      type: object
+      required:
+        - agency_name
+      properties:
+        agency_name:
+          type: string
+          minLength: 2
+          example: "Global Travels"
+        agency_address:
+          type: string
+          example: "456 Broadway, New York, NY"
+        agency_phone:
+          type: string
+          example: "+1234567890"
+        agency_email:
+          type: string
+          format: email
+          example: "info@globaltravels.com"
+        website:
+          type: string
+          format: uri
+          example: "https://www.globaltravels.com"
+        description:
+          type: string
+          example: "We offer comprehensive travel packages worldwide."
+
+    TravelPackageInput:
+      type: object
+      required:
+        - name
+        - description
+        - price
+        - duration
+        - destination_ids
+        - inclusions
+        - exclusions
+      properties:
+        name:
+          type: string
+          minLength: 2
+          example: "European Adventure"
+        description:
+          type: string
+          minLength: 10
+          example: "Explore the best of Europe with our comprehensive tour package."
+        price:
+          type: number
+          format: float
+          minimum: 0
+          example: 1999.99
+        duration:
+          type: integer
+          minimum: 1
+          example: 14
+        destination_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example: ["123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"]
+        inclusions:
+          type: array
+          items:
+            type: string
+          example: ["Accommodation", "Breakfast", "Local Guide", "Transportation"]
+        exclusions:
+          type: array
+          items:
+            type: string
+          example: ["Flights", "Travel Insurance", "Personal Expenses"]
+        itinerary:
+          type: object
+          example: {"day1": "Arrival and city tour", "day2": "Museum visits", "day3": "Free day"}
+        max_travelers:
+          type: integer
+          minimum: 1
+          example: 20
+
+    DestinationInput:
+      type: object
+      required:
+        - name
+        - country
+        - description
+        - highlights
+        - travel_tips
+      properties:
+        name:
+          type: string
+          minLength: 2
+          example: "Paris"
+        country:
+          type: string
+          minLength: 2
+          example: "France"
+        city:
+          type: string
+          example: "Paris"
+        description:
+          type: string
+          minLength: 10
+          example: "The capital of France, known for its art, culture, and history."
+        highlights:
+          type: array
+          items:
+            type: string
+          example: ["Eiffel Tower", "Louvre Museum", "Notre-Dame Cathedral"]
+        best_time_to_visit:
+          type: string
+          example: "Spring (April to June) or Fall (September to November)"
+        travel_tips:
+          type: array
+          items:
+            type: string
+          example: ["Learn basic French phrases", "Use the Metro for transportation", "Visit museums on the first Sunday of the month for free entry"]
+
+    CreateBookingInput:
+      type: object
+      required:
+        - booking_type
+        - start_date
+        - end_date
+      properties:
+        booking_type:
+          type: string
+          enum: [FLIGHT, HOTEL, TRIP]
+          example: "HOTEL"
+        start_date:
+          type: string
+          format: date
+          example: "2023-12-01"
+        end_date:
+          type: string
+          format: date
+          example: "2023-12-05"
+        flight_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        hotel_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
+        trip_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174002"
+
+    UpdateBookingInput:
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date
+          example: "2023-12-02"
+        end_date:
+          type: string
+          format: date
+          example: "2023-12-06"
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, CANCELED, COMPLETED]
+          example: "CONFIRMED"
 
 paths:
   /auth/register:
@@ -405,20 +937,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RegisterInput"
+              $ref: '#/components/schemas/RegisterInput'
       responses:
-        "201":
+        '201':
           description: User registered successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /auth/login:
     post:
@@ -430,20 +962,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginInput"
+              $ref: '#/components/schemas/LoginInput'
       responses:
-        "200":
+        '200':
           description: Login successful
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "401":
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
           description: Invalid credentials
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /auth/forgot-password:
     post:
@@ -455,14 +987,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ForgotPasswordInput"
+              $ref: '#/components/schemas/ForgotPasswordInput'
       responses:
-        "200":
+        '200':
           description: Password reset email sent
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /auth/reset-password:
     post:
@@ -474,20 +1006,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ResetPasswordInput"
+              $ref: '#/components/schemas/ResetPasswordInput'
       responses:
-        "200":
+        '200':
           description: Password reset successful
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Invalid or expired token
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /auth/verify-email:
     post:
@@ -499,20 +1031,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/VerifyEmailInput"
+              $ref: '#/components/schemas/VerifyEmailInput'
       responses:
-        "200":
+        '200':
           description: Email verified successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Invalid or expired token
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /auth/verify-phone:
     post:
@@ -527,20 +1059,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/VerifyPhoneInput"
+              $ref: '#/components/schemas/VerifyPhoneInput'
+     
+      
       responses:
-        "200":
+        '200':
           description: Phone verified successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Invalid or expired code
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /auth/social-login:
     post:
@@ -552,20 +1086,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SocialLoginInput"
+              $ref: '#/components/schemas/SocialLoginInput'
       responses:
-        "200":
+        '200':
           description: Social login successful
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Invalid token
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /auth/logout:
     post:
@@ -576,12 +1110,12 @@ paths:
         - BearerAuth: []
         - CookieAuth: []
       responses:
-        "200":
+        '200':
           description: Logged out successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /auth/refresh-token:
     post:
@@ -593,20 +1127,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RefreshTokenInput"
+              $ref: '#/components/schemas/RefreshTokenInput'
       responses:
-        "200":
+        '200':
           description: Tokens refreshed successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Invalid refresh token
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /auth/google:
     get:
@@ -614,7 +1148,7 @@ paths:
       tags:
         - Authentication
       responses:
-        "302":
+        '302':
           description: Redirect to Google authentication
 
   /auth/google/callback:
@@ -623,7 +1157,7 @@ paths:
       tags:
         - Authentication
       responses:
-        "302":
+        '302':
           description: Redirect to frontend with tokens
 
   /auth/facebook:
@@ -632,7 +1166,7 @@ paths:
       tags:
         - Authentication
       responses:
-        "302":
+        '302':
           description: Redirect to Facebook authentication
 
   /auth/facebook/callback:
@@ -641,7 +1175,7 @@ paths:
       tags:
         - Authentication
       responses:
-        "302":
+        '302':
           description: Redirect to frontend with tokens
 
   /auth/apple:
@@ -650,7 +1184,7 @@ paths:
       tags:
         - Authentication
       responses:
-        "302":
+        '302':
           description: Redirect to Apple authentication
 
   /auth/apple/callback:
@@ -659,7 +1193,7 @@ paths:
       tags:
         - Authentication
       responses:
-        "302":
+        '302':
           description: Redirect to frontend with tokens
 
   /users/profile:
@@ -671,18 +1205,18 @@ paths:
         - BearerAuth: []
         - CookieAuth: []
       responses:
-        "200":
+        '200':
           description: User profile retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "401":
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     put:
       summary: Update user profile
@@ -701,33 +1235,36 @@ paths:
                 full_name:
                   type: string
                   minLength: 2
-                last_name:
-                  type: string
-                  minLength: 2
+                  example: "Asikur Rahman"
                 date_of_birth:
                   type: string
                   format: date
+                  example: "1990-01-01"
                 address:
                   type: string
+                  example: "123 Main St, Dhaka, Bangladesh"
                 bio:
                   type: string
+                  example: "Travel enthusiast and adventure seeker."
                 theme:
                   type: string
+                  example: "dark"
                 language:
                   type: string
+                  example: "en"
       responses:
-        "200":
+        '200':
           description: Profile updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /users/password:
     put:
@@ -750,24 +1287,27 @@ paths:
               properties:
                 current_password:
                   type: string
+                  example: "12345678"
                 new_password:
                   type: string
                   minLength: 8
+                  example: "newpassword123"
                 confirm_password:
                   type: string
+                  example: "newpassword123"
       responses:
-        "200":
+        '200':
           description: Password updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error or incorrect current password
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /users/profile-picture:
     post:
@@ -788,18 +1328,18 @@ paths:
                   type: string
                   format: binary
       responses:
-        "200":
+        '200':
           description: Profile picture uploaded successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Invalid file
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /users/addresses:
     post:
@@ -823,25 +1363,29 @@ paths:
               properties:
                 address:
                   type: string
+                  example: "123 Main St"
                 city:
                   type: string
+                  example: "Dhaka"
                 country:
                   type: string
+                  example: "Bangladesh"
                 postal_code:
                   type: string
+                  example: "1000"
       responses:
-        "201":
+        '201':
           description: Address added successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     get:
       summary: Get user addresses
@@ -851,12 +1395,12 @@ paths:
         - BearerAuth: []
         - CookieAuth: []
       responses:
-        "200":
+        '200':
           description: Addresses retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /users/addresses/{id}:
     delete:
@@ -873,19 +1417,20 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Address deleted successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Address not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /hotels:
     get:
@@ -893,12 +1438,12 @@ paths:
       tags:
         - Hotels
       responses:
-        "200":
+        '200':
           description: Hotels retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     post:
       summary: Create hotel
@@ -924,95 +1469,110 @@ paths:
                 name:
                   type: string
                   minLength: 2
+                  example: "Marriott Hotel"
                 address:
                   type: string
                   minLength: 5
+                  example: "123 Main St, New York, NY"
                 rating:
                   type: number
                   minimum: 0
                   maximum: 5
+                  example: 4.5
                 price_per_night:
                   type: number
                   minimum: 0
+                  example: 199.99
                 amenities:
                   type: array
                   items:
                     type: string
+                  example: ["WiFi", "Pool", "Gym", "Restaurant"]
                 available_rooms:
                   type: integer
                   minimum: 0
+                  example: 10
       responses:
-        "201":
+        '201':
           description: Hotel created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Insufficient permissions
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /hotels/search:
     get:
       summary: Search hotels
       tags:
         - Hotels
+        - Traveler
       parameters:
         - name: location
           in: query
           schema:
             type: string
+          example: "New York"
         - name: check_in
           in: query
           schema:
             type: string
             format: date
+          example: "2023-12-01"
         - name: check_out
           in: query
           schema:
             type: string
             format: date
+          example: "2023-12-05"
         - name: guests
           in: query
           schema:
             type: integer
             minimum: 1
+          example: 2
         - name: min_price
           in: query
           schema:
             type: number
+          example: 100
         - name: max_price
           in: query
           schema:
             type: number
+          example: 300
         - name: amenities
           in: query
           schema:
             type: array
             items:
               type: string
+          example: ["WiFi", "Pool"]
         - name: rating
           in: query
           schema:
             type: number
             minimum: 0
             maximum: 5
+          example: 4
       responses:
-        "200":
+        '200':
           description: Hotels retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /hotels/{id}:
     get:
@@ -1026,19 +1586,20 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Hotel retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Hotel not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     put:
       summary: Update hotel
@@ -1054,6 +1615,7 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       requestBody:
         required: true
         content:
@@ -1064,48 +1626,54 @@ paths:
                 name:
                   type: string
                   minLength: 2
+                  example: "Marriott Hotel Deluxe"
                 address:
                   type: string
                   minLength: 5
+                  example: "123 Main St, New York, NY"
                 rating:
                   type: number
                   minimum: 0
                   maximum: 5
+                  example: 4.8
                 price_per_night:
                   type: number
                   minimum: 0
+                  example: 249.99
                 amenities:
                   type: array
                   items:
                     type: string
+                  example: ["WiFi", "Pool", "Gym", "Restaurant", "Spa"]
                 available_rooms:
                   type: integer
                   minimum: 0
+                  example: 15
       responses:
-        "200":
+        '200':
           description: Hotel updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Insufficient permissions
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Hotel not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     delete:
       summary: Delete hotel
@@ -1121,25 +1689,26 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Hotel deleted successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Insufficient permissions
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Hotel not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /flights:
     get:
@@ -1147,12 +1716,12 @@ paths:
       tags:
         - Flights
       responses:
-        "200":
+        '200':
           description: Flights retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     post:
       summary: Create flight
@@ -1179,95 +1748,113 @@ paths:
               properties:
                 flight_number:
                   type: string
+                  example: "BA123"
                 airline:
                   type: string
+                  example: "British Airways"
                 departure_time:
                   type: string
                   format: date-time
+                  example: "2023-12-01T10:00:00Z"
                 arrival_time:
                   type: string
                   format: date-time
+                  example: "2023-12-01T14:00:00Z"
                 from_airport:
                   type: string
+                  example: "LHR"
                 to_airport:
                   type: string
+                  example: "JFK"
                 price:
                   type: number
                   minimum: 0
+                  example: 499.99
                 seat_class:
                   type: string
+                  example: "Economy"
       responses:
-        "201":
+        '201':
           description: Flight created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Insufficient permissions
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /flights/search:
     get:
       summary: Search flights
       tags:
         - Flights
+        - Traveler
       parameters:
         - name: from
           in: query
           schema:
             type: string
+          example: "LHR"
         - name: to
           in: query
           schema:
             type: string
+          example: "JFK"
         - name: departure_date
           in: query
           schema:
             type: string
             format: date
+          example: "2023-12-01"
         - name: return_date
           in: query
           schema:
             type: string
             format: date
+          example: "2023-12-15"
         - name: passengers
           in: query
           schema:
             type: integer
             minimum: 1
+          example: 2
         - name: seat_class
           in: query
           schema:
             type: string
+          example: "Economy"
         - name: min_price
           in: query
           schema:
             type: number
+          example: 300
         - name: max_price
           in: query
           schema:
             type: number
+          example: 800
         - name: airline
           in: query
           schema:
             type: string
+          example: "British Airways"
       responses:
-        "200":
+        '200':
           description: Flights retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /flights/{id}:
     get:
@@ -1281,19 +1868,20 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Flight retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Flight not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     put:
       summary: Update flight
@@ -1309,6 +1897,7 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       requestBody:
         required: true
         content:
@@ -1318,48 +1907,56 @@ paths:
               properties:
                 flight_number:
                   type: string
+                  example: "BA456"
                 airline:
                   type: string
+                  example: "British Airways"
                 departure_time:
                   type: string
                   format: date-time
+                  example: "2023-12-01T11:00:00Z"
                 arrival_time:
                   type: string
                   format: date-time
+                  example: "2023-12-01T15:00:00Z"
                 from_airport:
                   type: string
+                  example: "LHR"
                 to_airport:
                   type: string
+                  example: "JFK"
                 price:
                   type: number
                   minimum: 0
+                  example: 549.99
                 seat_class:
                   type: string
+                  example: "Business"
       responses:
-        "200":
+        '200':
           description: Flight updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Insufficient permissions
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Flight not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     delete:
       summary: Delete flight
@@ -1375,25 +1972,26 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Flight deleted successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Insufficient permissions
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Flight not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /trips:
     get:
@@ -1401,12 +1999,12 @@ paths:
       tags:
         - Trips
       responses:
-        "200":
+        '200':
           description: Trips retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     post:
       summary: Create trip
@@ -1432,34 +2030,40 @@ paths:
                 trip_name:
                   type: string
                   minLength: 3
+                  example: "European Adventure"
                 description:
                   type: string
                   minLength: 10
+                  example: "Explore the best of Europe with our comprehensive tour package."
                 start_date:
                   type: string
                   format: date
+                  example: "2023-12-01"
                 end_date:
                   type: string
                   format: date
+                  example: "2023-12-15"
                 trip_type:
                   type: string
                   enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
+                  example: "ADVENTURE"
                 price:
                   type: number
                   minimum: 0
+                  example: 1999.99
       responses:
-        "201":
+        '201':
           description: Trip created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /trips/search:
     get:
@@ -1472,31 +2076,36 @@ paths:
           schema:
             type: string
             enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
+          example: "ADVENTURE"
         - name: start_date
           in: query
           schema:
             type: string
             format: date
+          example: "2023-12-01"
         - name: end_date
           in: query
           schema:
             type: string
             format: date
+          example: "2023-12-15"
         - name: min_price
           in: query
           schema:
             type: number
+          example: 1000
         - name: max_price
           in: query
           schema:
             type: number
+          example: 3000
       responses:
-        "200":
+        '200':
           description: Trips retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /trips/{id}:
     get:
@@ -1510,19 +2119,20 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Trip retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Trip not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     put:
       summary: Update trip
@@ -1538,6 +2148,7 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       requestBody:
         required: true
         content:
@@ -1548,46 +2159,52 @@ paths:
                 trip_name:
                   type: string
                   minLength: 3
+                  example: "European Adventure Deluxe"
                 description:
                   type: string
                   minLength: 10
+                  example: "Explore the best of Europe with our premium tour package."
                 start_date:
                   type: string
                   format: date
+                  example: "2023-12-05"
                 end_date:
                   type: string
                   format: date
+                  example: "2023-12-20"
                 trip_type:
                   type: string
                   enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
+                  example: "ADVENTURE"
                 price:
                   type: number
                   minimum: 0
+                  example: 2499.99
       responses:
-        "200":
+        '200':
           description: Trip updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Not the trip owner
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Trip not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     delete:
       summary: Delete trip
@@ -1603,31 +2220,33 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Trip deleted successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Not the trip owner
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Trip not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /bookings:
     post:
       summary: Create booking
       tags:
         - Bookings
+        - Traveler
       security:
         - BearerAuth: []
         - CookieAuth: []
@@ -1636,64 +2255,43 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - booking_type
-                - start_date
-                - end_date
-              properties:
-                booking_type:
-                  type: string
-                  enum: [FLIGHT, HOTEL, TRIP]
-                start_date:
-                  type: string
-                  format: date
-                end_date:
-                  type: string
-                  format: date
-                flight_id:
-                  type: string
-                  format: uuid
-                hotel_id:
-                  type: string
-                  format: uuid
-                trip_id:
-                  type: string
-                  format: uuid
+              $ref: '#/components/schemas/CreateBookingInput'
       responses:
-        "201":
+        '201':
           description: Booking created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     get:
       summary: Get user bookings
       tags:
         - Bookings
+        - Traveler
       security:
         - BearerAuth: []
         - CookieAuth: []
       responses:
-        "200":
+        '200':
           description: Bookings retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /bookings/{id}:
     get:
       summary: Get booking by ID
       tags:
         - Bookings
+        - Traveler
       security:
         - BearerAuth: []
         - CookieAuth: []
@@ -1704,30 +2302,32 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Booking retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Not the booking owner
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Booking not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     put:
       summary: Update booking
       tags:
         - Bookings
+        - Traveler
       security:
         - BearerAuth: []
         - CookieAuth: []
@@ -1738,52 +2338,45 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                start_date:
-                  type: string
-                  format: date
-                end_date:
-                  type: string
-                  format: date
-                status:
-                  type: string
-                  enum: [PENDING, CONFIRMED, CANCELED, COMPLETED]
+              $ref: '#/components/schemas/UpdateBookingInput'
       responses:
-        "200":
+        '200':
           description: Booking updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Not the booking owner
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse' 
+           
+        '404':
           description: Booking not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     delete:
       summary: Cancel booking
       tags:
         - Bookings
+        - Traveler
       security:
         - BearerAuth: []
         - CookieAuth: []
@@ -1794,31 +2387,32 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Booking canceled successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Booking cannot be canceled
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Not the booking owner
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Booking not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /payments:
     post:
@@ -1841,42 +2435,48 @@ paths:
                 booking_id:
                   type: string
                   format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174000"
                 payment_method:
                   type: string
                   enum: [CREDIT_CARD, PAYPAL, GOOGLE_PAY, APPLE_PAY]
+                  example: "CREDIT_CARD"
                 card_number:
                   type: string
+                  example: "4242424242424242"
                 card_expiry:
                   type: string
+                  example: "12/25"
                 card_cvv:
                   type: string
+                  example: "123"
                 billing_address:
                   type: string
+                  example: "123 Main St, New York, NY"
       responses:
-        "200":
+        '200':
           description: Payment processed successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error or payment processing error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Not the booking owner
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Booking not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     get:
       summary: Get user payments
@@ -1886,12 +2486,12 @@ paths:
         - BearerAuth: []
         - CookieAuth: []
       responses:
-        "200":
+        '200':
           description: Payments retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /payments/{id}:
     get:
@@ -1908,25 +2508,26 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Payment retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Not the payment owner
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Payment not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /payments/{id}/refund:
     post:
@@ -1943,31 +2544,32 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Payment refunded successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Payment cannot be refunded
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Not the payment owner
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Payment not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /reviews:
     post:
@@ -1989,31 +2591,36 @@ paths:
                 hotel_id:
                   type: string
                   format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174000"
                 flight_id:
                   type: string
                   format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174001"
                 trip_id:
                   type: string
                   format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174002"
                 rating:
                   type: number
                   minimum: 1
                   maximum: 5
+                  example: 4.5
                 comment:
                   type: string
+                  example: "Great experience! Would definitely recommend."
       responses:
-        "201":
+        '201':
           description: Review created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error or no booking found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /reviews/hotels/{id}:
     get:
@@ -2027,13 +2634,14 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Reviews retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /reviews/flights/{id}:
     get:
@@ -2047,13 +2655,14 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Reviews retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /reviews/trips/{id}:
     get:
@@ -2067,13 +2676,14 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Reviews retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /reviews/user:
     get:
@@ -2084,12 +2694,12 @@ paths:
         - BearerAuth: []
         - CookieAuth: []
       responses:
-        "200":
+        '200':
           description: Reviews retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
   /reviews/{id}:
     put:
@@ -2106,6 +2716,7 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       requestBody:
         required: true
         content:
@@ -2117,33 +2728,35 @@ paths:
                   type: number
                   minimum: 1
                   maximum: 5
+                  example: 5
                 comment:
                   type: string
+                  example: "Absolutely fantastic experience! Highly recommended."
       responses:
-        "200":
+        '200':
           description: Review updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Not the review owner
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Review not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
 
     delete:
       summary: Delete review
@@ -2159,22 +2772,501 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
       responses:
-        "200":
+        '200':
           description: Review deleted successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
           description: Forbidden - Not the review owner
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
           description: Review not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
+
+  /providers/register:
+    post:
+      summary: Register as a service provider
+      tags:
+        - Service Provider
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceProviderProfileInput'
+      responses:
+        '201':
+          description: Registered as service provider successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /providers/profile:
+    get:
+      summary: Get service provider profile
+      tags:
+        - Service Provider
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    
+    put:
+      summary: Update service provider profile
+      tags:
+        - Service Provider
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceProviderProfileInput'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /providers/services:
+    post:
+      summary: Add a new service
+      tags:
+        - Service Provider
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Mountain Hiking Tour"
+                description:
+                  type: string
+                  example: "Experience the thrill of hiking in the mountains with our expert guides."
+                price:
+                  type: number
+                  example: 99.99
+                duration:
+                  type: integer
+                  example: 180
+                location:
+                  type: string
+                  example: "Rocky Mountains"
+                category:
+                  type: string
+                  example: "Hiking"
+                availability:
+                  type: string
+                  example: '{"monday": true, "tuesday": true, "wednesday": true, "thursday": true, "friday": true}'
+                max_participants:
+                  type: integer
+                  example: 10
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Service created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    
+    get:
+      summary: List all services
+      tags:
+        - Service Provider
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Services retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /providers/services/{id}:
+    get:
+      summary: Get service details
+      tags:
+        - Service Provider
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Service retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    
+    put:
+      summary: Edit a service
+      tags:
+        - Service Provider
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Mountain Hiking Tour Deluxe"
+                description:
+                  type: string
+                  example: "Experience the thrill of hiking in the mountains with our expert guides and premium equipment."
+                price:
+                  type: number
+                  example: 129.99
+                duration:
+                  type: integer
+                  example: 240
+                location:
+                  type: string
+                  example: "Rocky Mountains"
+                category:
+                  type: string
+                  example: "Hiking"
+                availability:
+                  type: string
+                  example: '{"monday": true, "tuesday": true, "wednesday": true, "thursday": true, "friday": true, "saturday": true}'
+                max_participants:
+                  type: integer
+                  example: 8
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Service updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    
+    delete:
+      summary: Delete a service
+      tags:
+        - Service Provider
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Service deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /providers/orders:
+    get:
+      summary: View service orders
+      tags:
+        - Service Provider
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /providers/respond/{orderId}:
+    post:
+      summary: Respond to inquiry
+      tags:
+        - Service Provider
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - provider_response
+              properties:
+                provider_response:
+                  type: string
+                  example: "Thank you for your inquiry. We are happy to confirm your booking."
+      responses:
+        '200':
+          description: Response sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /agencies/register:
+    post:
+      summary: Register as a travel agency
+      tags:
+        - Travel Agency
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TravelAgencyProfileInput'
+      responses:
+        '201':
+          description: Registered as travel agency successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /agencies/packages:
+    post:
+      summary: Add a new travel package
+      tags:
+        - Travel Agency
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "European Adventure"
+                description:
+                  type: string
+                  example: "Explore the best of Europe with our comprehensive tour package."
+                price:
+                  type: number
+                  example: 1999.99
+                duration:
+                  type: integer
+                  example: 14
+                destination_ids:
+                  type: array
+                  items:
+                    type: string
+                  example: ["123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"]
+                inclusions:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Accommodation", "Breakfast", "Local Guide", "Transportation"]
+                exclusions:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Flights", "Travel Insurance", "Personal Expenses"]
+                itinerary:
+                  type: string
+                  example: '{"day1": "Arrival and city tour", "day2": "Museum visits", "day3": "Free day"}'
+                max_travelers:
+                  type: integer
+                  example: 20
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Travel package created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    
+    get:
+      summary: List all packages
+      tags:
+        - Travel Agency
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Packages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /agencies/packages/{id}:
+    get:
+      summary: Get package details
+      tags:
+        - Travel Agency
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Package retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Package not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'

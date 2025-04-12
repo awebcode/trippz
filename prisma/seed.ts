@@ -1,5 +1,7 @@
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { prisma } from "../src/lib/prisma";
+
+const prisma = new PrismaClient();
 
 async function main() {
   console.log("Starting seed...");
@@ -11,7 +13,7 @@ async function main() {
     update: {},
     create: {
       email: "admin@trippz.com",
-      full_name: "Admin",
+      first_name: "Admin",
       last_name: "User",
       phone_number: "1234567890",
       password_hash: adminPassword,
@@ -36,7 +38,7 @@ async function main() {
     update: {},
     create: {
       email: "provider@trippz.com",
-      full_name: "Service",
+      first_name: "Service",
       last_name: "Provider",
       phone_number: "0987654321",
       password_hash: providerPassword,
@@ -61,7 +63,7 @@ async function main() {
     update: {},
     create: {
       email: "user@trippz.com",
-      full_name: "Regular",
+      first_name: "Regular",
       last_name: "User",
       phone_number: "5555555555",
       password_hash: userPassword,
@@ -78,6 +80,31 @@ async function main() {
     },
   });
   console.log("Regular user created:", user.id);
+
+  // Create travel agency user
+  const agencyPassword = await bcrypt.hash("Agency@123", 10);
+  const agencyUser = await prisma.user.upsert({
+    where: { email: "agency@trippz.com" },
+    update: {},
+    create: {
+      email: "agency@trippz.com",
+      first_name: "Travel",
+      last_name: "Agency",
+      phone_number: "7777777777",
+      password_hash: agencyPassword,
+      role: "SERVICE_PROVIDER",
+      email_verified: true,
+      phone_verified: true,
+      Profile: {
+        create: {
+          bio: "Professional travel agency",
+          theme: "light",
+          language: "en",
+        },
+      },
+    },
+  });
+  console.log("Travel agency user created:", agencyUser.id);
 
   // Create cancellation policies
   const fullRefund = await prisma.cancelationPolicy.upsert({
@@ -255,6 +282,309 @@ async function main() {
     },
   });
   console.log("Trips created");
+
+  // Create service provider
+  const serviceProvider = await prisma.serviceProvider.upsert({
+    where: { user_id: provider.id },
+    update: {},
+    create: {
+      user_id: provider.id,
+      business_name: "Adventure Travel Services",
+      business_address: "123 Provider St, New York, NY",
+      business_phone: "555-123-4567",
+      business_email: "info@adventuretravel.com",
+      website: "https://adventuretravel.com",
+      description: "Providing premium travel services for adventure seekers",
+      verified: true,
+      rating: 4.8,
+    },
+  });
+  console.log("Service provider created:", serviceProvider.id);
+
+  // Create travel agency
+  const travelAgency = await prisma.travelAgency.upsert({
+    where: { user_id: agencyUser.id },
+    update: {},
+    create: {
+      user_id: agencyUser.id,
+      agency_name: "Global Journeys",
+      agency_address: "456 Agency Blvd, Miami, FL",
+      agency_phone: "555-987-6543",
+      agency_email: "info@globaljourneys.com",
+      website: "https://globaljourneys.com",
+      description: "Your gateway to worldwide adventures",
+      verified: true,
+      rating: 4.7,
+    },
+  });
+  console.log("Travel agency created:", travelAgency.id);
+
+  // Create destinations
+  const destination1 = await prisma.destination.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000001" },
+    update: {},
+    create: {
+      id: "00000000-0000-0000-0000-000000000001",
+      name: "Bali",
+      country: "Indonesia",
+      city: "Denpasar",
+      description: "Tropical paradise with beautiful beaches and rich culture",
+      highlights: ["Beaches", "Temples", "Rice terraces", "Waterfalls"],
+      best_time_to_visit: "April to October",
+      travel_tips: ["Bring sunscreen", "Respect local customs", "Try local cuisine"],
+    },
+  });
+
+  const destination2 = await prisma.destination.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000002" },
+    update: {},
+    create: {
+      id: "00000000-0000-0000-0000-000000000002",
+      name: "Paris",
+      country: "France",
+      city: "Paris",
+      description: "City of lights and romance",
+      highlights: ["Eiffel Tower", "Louvre Museum", "Notre Dame", "Seine River"],
+      best_time_to_visit: "April to June or September to October",
+      travel_tips: [
+        "Learn basic French phrases",
+        "Use public transportation",
+        "Visit museums on weekdays",
+      ],
+    },
+  });
+  console.log("Destinations created");
+
+  // Create services
+  const service1 = await prisma.service.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000001" },
+    update: {},
+    create: {
+      id: "00000000-0000-0000-0000-000000000001",
+      provider_id: serviceProvider.id,
+      name: "Guided Mountain Hiking",
+      description: "Professional guided hiking tours in the most beautiful mountains",
+      price: 149.99,
+      duration: 480, // 8 hours
+      location: "Rocky Mountains",
+      category: "Adventure",
+      max_participants: 10,
+      availability: JSON.parse(
+        '{"weekdays": ["Monday", "Wednesday", "Friday"], "hours": ["08:00", "09:00"]}'
+      ),
+    },
+  });
+
+  const service2 = await prisma.service.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000002" },
+    update: {},
+    create: {
+      id: "00000000-0000-0000-0000-000000000002",
+      provider_id: serviceProvider.id,
+      name: "Scuba Diving Lessons",
+      description: "Learn to scuba dive with certified instructors",
+      price: 299.99,
+      duration: 360, // 6 hours
+      location: "Miami Beach",
+      category: "Water Sports",
+      max_participants: 5,
+      availability: JSON.parse(
+        '{"weekdays": ["Tuesday", "Thursday", "Saturday"], "hours": ["10:00", "14:00"]}'
+      ),
+    },
+  });
+  console.log("Services created");
+
+  // Create travel packages
+  const travelPackage1 = await prisma.travelPackage.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000001" },
+    update: {},
+    create: {
+      id: "00000000-0000-0000-0000-000000000001",
+      agency_id: travelAgency.id,
+      name: "Bali Paradise Getaway",
+      description: "Experience the beauty and culture of Bali",
+      price: 1999.99,
+      duration: 7, // 7 days
+      inclusions: ["Accommodation", "Breakfast", "Airport transfers", "Guided tours"],
+      exclusions: ["Flights", "Travel insurance", "Personal expenses"],
+      itinerary: JSON.parse(
+        '{"day1": "Arrival and welcome dinner", "day2": "Beach day", "day3": "Temple tour", "day4": "Rice terraces visit", "day5": "Waterfall trek", "day6": "Free day", "day7": "Departure"}'
+      ),
+      max_travelers: 20,
+      destinations: {
+        connect: [{ id: destination1.id }],
+      },
+    },
+  });
+
+  const travelPackage2 = await prisma.travelPackage.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000002" },
+    update: {},
+    create: {
+      id: "00000000-0000-0000-0000-000000000002",
+      agency_id: travelAgency.id,
+      name: "Romantic Paris Escape",
+      description: "Discover the romance of Paris",
+      price: 2499.99,
+      duration: 5, // 5 days
+      inclusions: [
+        "Luxury accommodation",
+        "Breakfast",
+        "Seine River cruise",
+        "Skip-the-line museum passes",
+      ],
+      exclusions: ["Flights", "Travel insurance", "Personal expenses"],
+      itinerary: JSON.parse(
+        '{"day1": "Arrival and Eiffel Tower visit", "day2": "Louvre Museum", "day3": "Montmartre and Sacré-Cœur", "day4": "Versailles day trip", "day5": "Shopping and departure"}'
+      ),
+      max_travelers: 2,
+      destinations: {
+        connect: [{ id: destination2.id }],
+      },
+    },
+  });
+  console.log("Travel packages created");
+
+  // Create bookings
+  const booking1 = await prisma.booking.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000001" },
+    update: {},
+    create: {
+      id: "00000000-0000-0000-0000-000000000001",
+      user_id: user.id,
+      booking_type: "HOTEL",
+      hotel_id: hotel1.id,
+      start_date: new Date("2023-12-20"),
+      end_date: new Date("2023-12-27"),
+      status: "CONFIRMED",
+      total_price: 2099.93, // 7 nights
+      cancellation_id: fullRefund.id,
+    },
+  });
+
+  const booking2 = await prisma.booking.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000002" },
+    update: {},
+    create: {
+      id: "00000000-0000-0000-0000-000000000002",
+      user_id: user.id,
+      booking_type: "FLIGHT",
+      flight_id: flight1.id,
+      start_date: new Date("2023-12-15"),
+      end_date: new Date("2023-12-15"),
+      status: "CONFIRMED",
+      total_price: 349.99,
+      cancellation_id: partialRefund.id,
+    },
+  });
+
+  const booking3 = await prisma.booking.upsert({
+    where: { id: "00000000-0000-0000-0000-000000000003" },
+    update: {},
+    create: {
+      id: "00000000-0000-0000-0000-000000000003",
+      user_id: user.id,
+      booking_type: "TRIP",
+      trip_id: trip1.id,
+      start_date: new Date("2024-01-15"),
+      end_date: new Date("2024-01-22"),
+      status: "PENDING",
+      total_price: 1299.99,
+      cancellation_id: noRefund.id,
+    },
+  });
+  console.log("Bookings created");
+
+  // Create payments
+  const payment1 = await prisma.payment.create({
+    data: {
+      booking_id: booking1.id,
+      payment_method: "CREDIT_CARD",
+      amount_paid: 2099.93,
+      payment_status: "SUCCESS",
+      payment_details: {
+        create: {
+          transaction_id: "txn_" + Math.random().toString(36).substring(2, 15),
+          provider: "Stripe",
+          payment_data: JSON.stringify({
+            card_last4: "4242",
+            card_brand: "Visa",
+            card_exp_month: 12,
+            card_exp_year: 2025,
+          }),
+        },
+      },
+    },
+  });
+
+  const payment2 = await prisma.payment.create({
+    data: {
+      booking_id: booking2.id,
+      payment_method: "PAYPAL",
+      amount_paid: 349.99,
+      payment_status: "SUCCESS",
+      payment_details: {
+        create: {
+          transaction_id: "txn_" + Math.random().toString(36).substring(2, 15),
+          provider: "PayPal",
+          payment_data: JSON.stringify({
+            payer_email: "user@example.com",
+            payer_id: "PAYERID123",
+          }),
+        },
+      },
+    },
+  });
+  console.log("Payments created");
+
+  // Create service orders
+  const serviceOrder = await prisma.serviceOrder.create({
+    data: {
+      service_id: service1.id,
+      user_id: user.id,
+      status: "CONFIRMED",
+      date: new Date("2024-02-15T08:00:00Z"),
+      participants: 2,
+      total_price: 299.98,
+      special_requests: "We would like to bring our camera equipment",
+    },
+  });
+  console.log("Service order created:", serviceOrder.id);
+
+  // Create package orders
+  const packageOrder = await prisma.packageOrder.create({
+    data: {
+      package_id: travelPackage1.id,
+      user_id: user.id,
+      status: "CONFIRMED",
+      start_date: new Date("2024-03-10"),
+      travelers: 2,
+      total_price: 3999.98,
+      special_requests: "We're celebrating our anniversary",
+    },
+  });
+  console.log("Package order created:", packageOrder.id);
+
+  // Create reviews
+  const review1 = await prisma.review.create({
+    data: {
+      user_id: user.id,
+      hotel_id: hotel1.id,
+      rating: 4.5,
+      comment: "Beautiful resort with excellent service. The spa was amazing!",
+    },
+  });
+
+  const review2 = await prisma.review.create({
+    data: {
+      user_id: user.id,
+      flight_id: flight1.id,
+      rating: 4.0,
+      comment: "On-time departure and comfortable seats. Food could be better.",
+    },
+  });
+  console.log("Reviews created");
 
   // Create discounts
   const discount1 = await prisma.discount.upsert({

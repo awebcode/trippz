@@ -182,7 +182,7 @@ export const revokeRefreshToken = async (userId: string) => {
 }
 
 // Generate verification token
-export const generateVerificationToken = (userId: string) => {
+export const generateVerificationToken = () => {
   return crypto.randomBytes(32).toString("hex")
 }
 

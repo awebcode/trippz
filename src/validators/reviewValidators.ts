@@ -8,16 +8,15 @@ export const createReviewSchema = z
     rating: z.number().min(1).max(5),
     comment: z.string().optional(),
   })
-  .strict()
   .refine(
     (data) => {
-      return !!(data.hotel_id || data.flight_id || data.trip_id);
+      return !!(data.hotel_id || data.flight_id || data.trip_id)
     },
     {
       message: "At least one of hotel_id, flight_id, or trip_id is required",
       path: ["hotel_id"],
-    }
-  );
+    },
+  )
 
 export const updateReviewSchema = z.object({
   rating: z.number().min(1).max(5).optional(),

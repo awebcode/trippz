@@ -46,13 +46,16 @@ CREATE TYPE "TransactionType" AS ENUM ('PAYMENT', 'REFUND');
 -- CreateEnum
 CREATE TYPE "ActivityType" AS ENUM ('LOGIN', 'BOOKING', 'PAYMENT', 'SEARCH', 'REVIEW');
 
+-- CreateEnum
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'CONFIRMED', 'REJECTED', 'COMPLETED', 'CANCELLED');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" UUID NOT NULL,
-    "full_name" TEXT NOT NULL,
-    "last_name" TEXT NOT NULL,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT,
     "email" TEXT NOT NULL,
-    "phone_number" TEXT NOT NULL,
+    "phone_number" TEXT,
     "password_hash" TEXT NOT NULL,
     "role" "Role" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -276,6 +279,9 @@ CREATE TABLE "Image" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "flightId" UUID,
+    "service_id" UUID,
+    "package_id" UUID,
+    "destination_id" UUID,
 
     CONSTRAINT "Image_pkey" PRIMARY KEY ("id")
 );
@@ -422,6 +428,136 @@ CREATE TABLE "Address" (
     CONSTRAINT "Address_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "ServiceProvider" (
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "business_name" TEXT NOT NULL,
+    "business_address" TEXT,
+    "business_phone" TEXT,
+    "business_email" TEXT,
+    "website" TEXT,
+    "description" TEXT,
+    "verified" BOOLEAN NOT NULL DEFAULT false,
+    "rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ServiceProvider_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Service" (
+    "id" UUID NOT NULL,
+    "provider_id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "price" DOUBLE PRECISION NOT NULL,
+    "duration" INTEGER NOT NULL,
+    "location" TEXT,
+    "category" TEXT NOT NULL,
+    "availability" JSONB,
+    "max_participants" INTEGER,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Service_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ServiceOrder" (
+    "id" UUID NOT NULL,
+    "service_id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "status" "OrderStatus" NOT NULL DEFAULT 'PENDING',
+    "date" TIMESTAMP(3) NOT NULL,
+    "participants" INTEGER NOT NULL DEFAULT 1,
+    "total_price" DOUBLE PRECISION NOT NULL,
+    "special_requests" TEXT,
+    "provider_response" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ServiceOrder_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TravelAgency" (
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "agency_name" TEXT NOT NULL,
+    "agency_address" TEXT,
+    "agency_phone" TEXT,
+    "agency_email" TEXT,
+    "website" TEXT,
+    "description" TEXT,
+    "verified" BOOLEAN NOT NULL DEFAULT false,
+    "rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "TravelAgency_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TravelPackage" (
+    "id" UUID NOT NULL,
+    "agency_id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "price" DOUBLE PRECISION NOT NULL,
+    "duration" INTEGER NOT NULL,
+    "inclusions" TEXT[],
+    "exclusions" TEXT[],
+    "itinerary" JSONB,
+    "max_travelers" INTEGER,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "TravelPackage_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PackageOrder" (
+    "id" UUID NOT NULL,
+    "package_id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "status" "OrderStatus" NOT NULL DEFAULT 'PENDING',
+    "start_date" TIMESTAMP(3) NOT NULL,
+    "travelers" INTEGER NOT NULL DEFAULT 1,
+    "total_price" DOUBLE PRECISION NOT NULL,
+    "special_requests" TEXT,
+    "agency_response" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PackageOrder_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Destination" (
+    "id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "country" TEXT NOT NULL,
+    "city" TEXT,
+    "description" TEXT NOT NULL,
+    "highlights" TEXT[],
+    "best_time_to_visit" TEXT,
+    "travel_tips" TEXT[],
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Destination_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "_DestinationToTravelPackage" (
+    "A" UUID NOT NULL,
+    "B" UUID NOT NULL,
+
+    CONSTRAINT "_DestinationToTravelPackage_AB_pkey" PRIMARY KEY ("A","B")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -454,6 +590,15 @@ CREATE UNIQUE INDEX "PaymentDetail_paymentId_key" ON "PaymentDetail"("paymentId"
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Discount_code_key" ON "Discount"("code");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ServiceProvider_user_id_key" ON "ServiceProvider"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TravelAgency_user_id_key" ON "TravelAgency"("user_id");
+
+-- CreateIndex
+CREATE INDEX "_DestinationToTravelPackage_B_index" ON "_DestinationToTravelPackage"("B");
 
 -- AddForeignKey
 ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -525,6 +670,15 @@ ALTER TABLE "Image" ADD CONSTRAINT "Image_trip_id_fkey" FOREIGN KEY ("trip_id") 
 ALTER TABLE "Image" ADD CONSTRAINT "Image_flightId_fkey" FOREIGN KEY ("flightId") REFERENCES "Flight"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Image" ADD CONSTRAINT "Image_service_id_fkey" FOREIGN KEY ("service_id") REFERENCES "Service"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Image" ADD CONSTRAINT "Image_package_id_fkey" FOREIGN KEY ("package_id") REFERENCES "TravelPackage"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Image" ADD CONSTRAINT "Image_destination_id_fkey" FOREIGN KEY ("destination_id") REFERENCES "Destination"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "SearchHistory" ADD CONSTRAINT "SearchHistory_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -559,3 +713,33 @@ ALTER TABLE "UserActivity" ADD CONSTRAINT "UserActivity_user_id_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "Address" ADD CONSTRAINT "Address_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ServiceProvider" ADD CONSTRAINT "ServiceProvider_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Service" ADD CONSTRAINT "Service_provider_id_fkey" FOREIGN KEY ("provider_id") REFERENCES "ServiceProvider"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ServiceOrder" ADD CONSTRAINT "ServiceOrder_service_id_fkey" FOREIGN KEY ("service_id") REFERENCES "Service"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ServiceOrder" ADD CONSTRAINT "ServiceOrder_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TravelAgency" ADD CONSTRAINT "TravelAgency_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TravelPackage" ADD CONSTRAINT "TravelPackage_agency_id_fkey" FOREIGN KEY ("agency_id") REFERENCES "TravelAgency"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PackageOrder" ADD CONSTRAINT "PackageOrder_package_id_fkey" FOREIGN KEY ("package_id") REFERENCES "TravelPackage"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PackageOrder" ADD CONSTRAINT "PackageOrder_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_DestinationToTravelPackage" ADD CONSTRAINT "_DestinationToTravelPackage_A_fkey" FOREIGN KEY ("A") REFERENCES "Destination"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_DestinationToTravelPackage" ADD CONSTRAINT "_DestinationToTravelPackage_B_fkey" FOREIGN KEY ("B") REFERENCES "TravelPackage"("id") ON DELETE CASCADE ON UPDATE CASCADE;

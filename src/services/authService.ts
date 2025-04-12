@@ -35,7 +35,7 @@ export class AuthService {
         where: {
           OR: [
             { email: data.email },
-            // { phone_number: data.phone_number }
+            ...(data.phone_number ? [{ phone_number: data.phone_number }] : []),
           ],
         },
       });
@@ -46,34 +46,39 @@ export class AuthService {
             { path: "email", message: "Email already in use" },
           ]);
         }
-        // if (existingUser.phone_number === data.phone_number) {
-        //   throw new AppError("Phone number already in use", 400, [
-        //     { path: "phone_number", message: "Phone number already in use" },
-        //   ]);
-        // }
+        if (data.phone_number && existingUser.phone_number === data.phone_number) {
+          throw new AppError("Phone number already in use", 400, [
+            { path: "phone_number", message: "Phone number already in use" },
+          ]);
+        }
       }
 
       // Hash password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(data.password, salt);
 
+      // Handle full_name
+      const nameParts = data.full_name.split(" ");
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+
       // Create verification tokens
-      const emailVerificationToken = generateVerificationToken(
-        existingUser ? existingUser.id : ""
-      );
-      const phoneVerificationCode = generatePhoneVerificationCode();
+      const emailVerificationToken = generateVerificationToken();
+      const phoneVerificationCode = data.phone_number
+        ? generatePhoneVerificationCode()
+        : null;
 
       // Create user
       const user = await prisma.user.create({
         data: {
-          full_name: data.full_name,
-          // last_name: data.last_name,
+          first_name: firstName,
+          last_name: lastName,
           email: data.email,
-          // phone_number: data.phone_number,
+          phone_number: data.phone_number,
           password_hash: hashedPassword,
-          // role: data.role,
-          // date_of_birth: data.date_of_birth ? new Date(data.date_of_birth) : null,
-          // address: data.address,
+          role: data.role,
+          date_of_birth: data.date_of_birth ? new Date(data.date_of_birth) : null,
+          address: data.address,
           Profile: {
             create: {
               bio: "",
@@ -87,19 +92,22 @@ export class AuthService {
               expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
             },
           },
-          phoneVerification: {
-            create: {
-              code: phoneVerificationCode,
-              expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
-            },
-          },
+          ...(phoneVerificationCode &&
+            data.phone_number && {
+              phoneVerification: {
+                create: {
+                  code: phoneVerificationCode,
+                  expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+                },
+              },
+            }),
         },
       });
 
       // Send verification emails and SMS
       await EmailService.sendVerificationEmail(data.email, emailVerificationToken);
-      if (user?.phone_number) {
-        await SmsService.sendVerificationSms(user.phone_number, phoneVerificationCode);
+      if (data.phone_number && phoneVerificationCode) {
+        await SmsService.sendVerificationSms(data.phone_number, phoneVerificationCode);
       }
 
       // Generate JWT tokens
@@ -108,7 +116,7 @@ export class AuthService {
       return {
         user: {
           id: user.id,
-          full_name: user.full_name,
+          first_name: user.first_name,
           last_name: user.last_name,
           email: user.email,
           role: user.role,
@@ -127,32 +135,27 @@ export class AuthService {
 
   static async login(data: LoginInput) {
     try {
-      console.log({ data });
-      // Check if the user is attempting to log in with an email or phone number
-      let user;
-      if (data.email) {
-        // Find user by email
-        user = await prisma.user.findUnique({
-          where: { email: data.email },
-        });
-      } else if (data.phone_number) {
-        // Find user by phone number
-        user = await prisma.user.findUnique({
-          where: { phone_number: data.phone_number },
-        });
-      }
+      // Find user by email or phone number
+      const user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            ...(data.email ? [{ email: data.email }] : []),
+            ...(data.phone_number ? [{ phone_number: data.phone_number }] : []),
+          ],
+        },
+      });
 
       if (!user) {
-        throw new AppError("Invalid email or phone number or password", 401, [
-          { path: "email", message: "Invalid email or phone number or password" },
+        throw new AppError("Invalid credentials", 401, [
+          { path: "email", message: "Invalid credentials" },
         ]);
       }
 
       // Check password
       const isPasswordValid = await bcrypt.compare(data.password, user.password_hash);
       if (!isPasswordValid) {
-        throw new AppError("Invalid email or phone number or password", 401, [
-          { path: "password", message: "Invalid email or phone number or password" },
+        throw new AppError("Invalid credentials", 401, [
+          { path: "password", message: "Invalid credentials" },
         ]);
       }
 
@@ -162,7 +165,7 @@ export class AuthService {
       return {
         user: {
           id: user.id,
-          full_name: user.full_name,
+          first_name: user.first_name,
           last_name: user.last_name,
           email: user.email,
           role: user.role,
@@ -202,7 +205,7 @@ export class AuthService {
         user = await prisma.user.create({
           data: {
             email: payload.email,
-            full_name: payload.given_name || "Google",
+            first_name: payload.given_name || "Google",
             last_name: payload.family_name || "User",
             phone_number: `google_${Date.now()}`, // Placeholder
             password_hash: crypto.randomBytes(16).toString("hex"), // Random password
@@ -251,7 +254,7 @@ export class AuthService {
       return {
         user: {
           id: user.id,
-          full_name: user.full_name,
+          first_name: user.first_name,
           last_name: user.last_name,
           email: user.email,
           role: user.role,
@@ -272,10 +275,10 @@ export class AuthService {
     try {
       // Verify Facebook access token
       const response = await axios.get(
-        `https://graph.facebook.com/me?fields=id,name,email,full_name,last_name,picture&access_token=${accessToken}`
+        `https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture&access_token=${accessToken}`
       );
 
-      const { id, email, full_name, last_name, picture } = response.data;
+      const { id, email, first_name, last_name, picture } = response.data;
 
       if (!email) {
         throw new AppError("Email not provided by Facebook", 400);
@@ -291,7 +294,7 @@ export class AuthService {
         user = await prisma.user.create({
           data: {
             email,
-            full_name: full_name || "Facebook",
+            first_name: first_name || "Facebook",
             last_name: last_name || "User",
             phone_number: `facebook_${Date.now()}`, // Placeholder
             password_hash: crypto.randomBytes(16).toString("hex"), // Random password
@@ -340,7 +343,7 @@ export class AuthService {
       return {
         user: {
           id: user.id,
-          full_name: user.full_name,
+          first_name: user.first_name,
           last_name: user.last_name,
           email: user.email,
           role: user.role,
@@ -379,7 +382,7 @@ export class AuthService {
         user = await prisma.user.create({
           data: {
             email: payload.email,
-            full_name: payload.given_name || "Apple",
+            first_name: payload.given_name || "Apple",
             last_name: payload.family_name || "User",
             phone_number: `apple_${Date.now()}`, // Placeholder
             password_hash: crypto.randomBytes(16).toString("hex"), // Random password
@@ -427,7 +430,7 @@ export class AuthService {
       return {
         user: {
           id: user.id,
-          full_name: user.full_name,
+          first_name: user.first_name,
           last_name: user.last_name,
           email: user.email,
           role: user.role,
@@ -675,7 +678,7 @@ export class AuthService {
       }
 
       // Generate new verification token
-      const verificationToken = generateVerificationToken(userId);
+      const verificationToken = generateVerificationToken();
 
       // Update or create verification record
       await prisma.emailVerification.upsert({
@@ -736,11 +739,14 @@ export class AuthService {
         },
       });
 
-      // Send verification SMS
-      if (!user.phone_number) {
+      if(!user.phone_number) {
         throw new AppError("Phone number not found", 404);
       }
-      await SmsService.sendVerificationSms(user?.phone_number, verificationCode);
+
+      // Send verification SMS
+      if (user.phone_number) {
+        await SmsService.sendVerificationSms(user.phone_number, verificationCode);
+      }
 
       return { message: "Verification SMS sent" };
     } catch (error) {

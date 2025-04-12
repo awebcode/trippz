@@ -1,11 +1,7 @@
-import { prisma } from "../lib/prisma";
-import { AppError } from "../utils/appError";
-import { logger } from "../utils/logger";
-import type {
-  CreateTripInput,
-  UpdateTripInput,
-  SearchTripsInput,
-} from "../validators/tripValidators";
+import { prisma } from "../lib/prisma"
+import { AppError } from "../utils/appError"
+import { logger } from "../utils/logger"
+import type { CreateTripInput, UpdateTripInput, SearchTripsInput } from "../validators/tripValidators"
 
 export class TripService {
   static async createTrip(userId: string, data: CreateTripInput) {
@@ -20,15 +16,15 @@ export class TripService {
           trip_type: data.trip_type,
           price: data.price,
         },
-      });
+      })
 
-      return trip;
+      return trip
     } catch (error) {
-      logger.error(`Error in createTrip: ${error}`);
+      logger.error(`Error in createTrip: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to create trip", 500);
+      throw new AppError("Failed to create trip", 500)
     }
   }
 
@@ -40,21 +36,21 @@ export class TripService {
           user: {
             select: {
               id: true,
-              full_name: true,
+              first_name: true,
               last_name: true,
               profile_picture: true,
             },
           },
         },
-      });
+      })
 
-      return trips;
+      return trips
     } catch (error) {
-      logger.error(`Error in getTrips: ${error}`);
+      logger.error(`Error in getTrips: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to get trips", 500);
+      throw new AppError("Failed to get trips", 500)
     }
   }
 
@@ -67,7 +63,7 @@ export class TripService {
           user: {
             select: {
               id: true,
-              full_name: true,
+              first_name: true,
               last_name: true,
               profile_picture: true,
             },
@@ -77,7 +73,7 @@ export class TripService {
               user: {
                 select: {
                   id: true,
-                  full_name: true,
+                  first_name: true,
                   last_name: true,
                   profile_picture: true,
                 },
@@ -85,19 +81,19 @@ export class TripService {
             },
           },
         },
-      });
+      })
 
       if (!trip) {
-        throw new AppError("Trip not found", 404);
+        throw new AppError("Trip not found", 404)
       }
 
-      return trip;
+      return trip
     } catch (error) {
-      logger.error(`Error in getTripById: ${error}`);
+      logger.error(`Error in getTripById: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to get trip", 500);
+      throw new AppError("Failed to get trip", 500)
     }
   }
 
@@ -105,14 +101,14 @@ export class TripService {
     try {
       const trip = await prisma.trip.findUnique({
         where: { id },
-      });
+      })
 
       if (!trip) {
-        throw new AppError("Trip not found", 404);
+        throw new AppError("Trip not found", 404)
       }
 
       if (trip.user_id !== userId) {
-        throw new AppError("You are not authorized to update this trip", 403);
+        throw new AppError("You are not authorized to update this trip", 403)
       }
 
       const updatedTrip = await prisma.trip.update({
@@ -125,15 +121,15 @@ export class TripService {
           trip_type: data.trip_type ?? trip.trip_type,
           price: data.price ?? trip.price,
         },
-      });
+      })
 
-      return updatedTrip;
+      return updatedTrip
     } catch (error) {
-      logger.error(`Error in updateTrip: ${error}`);
+      logger.error(`Error in updateTrip: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to update trip", 500);
+      throw new AppError("Failed to update trip", 500)
     }
   }
 
@@ -141,57 +137,57 @@ export class TripService {
     try {
       const trip = await prisma.trip.findUnique({
         where: { id },
-      });
+      })
 
       if (!trip) {
-        throw new AppError("Trip not found", 404);
+        throw new AppError("Trip not found", 404)
       }
 
       if (trip.user_id !== userId) {
-        throw new AppError("You are not authorized to delete this trip", 403);
+        throw new AppError("You are not authorized to delete this trip", 403)
       }
 
       await prisma.trip.delete({
         where: { id },
-      });
+      })
 
-      return { message: "Trip deleted successfully" };
+      return { message: "Trip deleted successfully" }
     } catch (error) {
-      logger.error(`Error in deleteTrip: ${error}`);
+      logger.error(`Error in deleteTrip: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to delete trip", 500);
+      throw new AppError("Failed to delete trip", 500)
     }
   }
 
   static async searchTrips(params: SearchTripsInput) {
     try {
-      const where: any = {};
+      const where: any = {}
 
       if (params.trip_type) {
-        where.trip_type = params.trip_type;
+        where.trip_type = params.trip_type
       }
 
       if (params.start_date) {
         where.start_date = {
           gte: new Date(params.start_date),
-        };
+        }
       }
 
       if (params.end_date) {
         where.end_date = {
           lte: new Date(params.end_date),
-        };
+        }
       }
 
       if (params.min_price || params.max_price) {
-        where.price = {};
+        where.price = {}
         if (params.min_price) {
-          where.price.gte = params.min_price;
+          where.price.gte = params.min_price
         }
         if (params.max_price) {
-          where.price.lte = params.max_price;
+          where.price.lte = params.max_price
         }
       }
 
@@ -202,21 +198,21 @@ export class TripService {
           user: {
             select: {
               id: true,
-              full_name: true,
+              first_name: true,
               last_name: true,
               profile_picture: true,
             },
           },
         },
-      });
+      })
 
-      return trips;
+      return trips
     } catch (error) {
-      logger.error(`Error in searchTrips: ${error}`);
+      logger.error(`Error in searchTrips: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to search trips", 500);
+      throw new AppError("Failed to search trips", 500)
     }
   }
 }

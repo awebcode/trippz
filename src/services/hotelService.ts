@@ -1,11 +1,7 @@
-import { prisma } from "../lib/prisma";
-import { AppError } from "../utils/appError";
-import { logger } from "../utils/logger";
-import type {
-  CreateHotelInput,
-  UpdateHotelInput,
-  SearchHotelsInput,
-} from "../validators/hotelValidators";
+import { prisma } from "../lib/prisma"
+import { AppError } from "../utils/appError"
+import { logger } from "../utils/logger"
+import type { CreateHotelInput, UpdateHotelInput, SearchHotelsInput } from "../validators/hotelValidators"
 
 export class HotelService {
   static async createHotel(data: CreateHotelInput) {
@@ -19,15 +15,15 @@ export class HotelService {
           amenities: data.amenities,
           available_rooms: data.available_rooms,
         },
-      });
+      })
 
-      return hotel;
+      return hotel
     } catch (error) {
-      logger.error(`Error in createHotel: ${error}`);
+      logger.error(`Error in createHotel: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to create hotel", 500);
+      throw new AppError("Failed to create hotel", 500)
     }
   }
 
@@ -37,15 +33,15 @@ export class HotelService {
         include: {
           images: true,
         },
-      });
+      })
 
-      return hotels;
+      return hotels
     } catch (error) {
-      logger.error(`Error in getHotels: ${error}`);
+      logger.error(`Error in getHotels: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to get hotels", 500);
+      throw new AppError("Failed to get hotels", 500)
     }
   }
 
@@ -60,7 +56,7 @@ export class HotelService {
               user: {
                 select: {
                   id: true,
-                  full_name: true,
+                  first_name: true,
                   last_name: true,
                   profile_picture: true,
                 },
@@ -68,19 +64,19 @@ export class HotelService {
             },
           },
         },
-      });
+      })
 
       if (!hotel) {
-        throw new AppError("Hotel not found", 404);
+        throw new AppError("Hotel not found", 404)
       }
 
-      return hotel;
+      return hotel
     } catch (error) {
-      logger.error(`Error in getHotelById: ${error}`);
+      logger.error(`Error in getHotelById: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to get hotel", 500);
+      throw new AppError("Failed to get hotel", 500)
     }
   }
 
@@ -88,10 +84,10 @@ export class HotelService {
     try {
       const hotel = await prisma.hotel.findUnique({
         where: { id },
-      });
+      })
 
       if (!hotel) {
-        throw new AppError("Hotel not found", 404);
+        throw new AppError("Hotel not found", 404)
       }
 
       const updatedHotel = await prisma.hotel.update({
@@ -104,15 +100,15 @@ export class HotelService {
           amenities: data.amenities ?? hotel.amenities,
           available_rooms: data.available_rooms ?? hotel.available_rooms,
         },
-      });
+      })
 
-      return updatedHotel;
+      return updatedHotel
     } catch (error) {
-      logger.error(`Error in updateHotel: ${error}`);
+      logger.error(`Error in updateHotel: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to update hotel", 500);
+      throw new AppError("Failed to update hotel", 500)
     }
   }
 
@@ -120,57 +116,57 @@ export class HotelService {
     try {
       const hotel = await prisma.hotel.findUnique({
         where: { id },
-      });
+      })
 
       if (!hotel) {
-        throw new AppError("Hotel not found", 404);
+        throw new AppError("Hotel not found", 404)
       }
 
       await prisma.hotel.delete({
         where: { id },
-      });
+      })
 
-      return { message: "Hotel deleted successfully" };
+      return { message: "Hotel deleted successfully" }
     } catch (error) {
-      logger.error(`Error in deleteHotel: ${error}`);
+      logger.error(`Error in deleteHotel: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to delete hotel", 500);
+      throw new AppError("Failed to delete hotel", 500)
     }
   }
 
   static async searchHotels(params: SearchHotelsInput) {
     try {
-      const where: any = {};
+      const where: any = {}
 
       if (params.location) {
         where.address = {
           contains: params.location,
           mode: "insensitive",
-        };
+        }
       }
 
       if (params.min_price || params.max_price) {
-        where.price_per_night = {};
+        where.price_per_night = {}
         if (params.min_price) {
-          where.price_per_night.gte = params.min_price;
+          where.price_per_night.gte = params.min_price
         }
         if (params.max_price) {
-          where.price_per_night.lte = params.max_price;
+          where.price_per_night.lte = params.max_price
         }
       }
 
       if (params.rating) {
         where.rating = {
           gte: params.rating,
-        };
+        }
       }
 
       if (params.amenities && params.amenities.length > 0) {
         where.amenities = {
           hasSome: params.amenities,
-        };
+        }
       }
 
       const hotels = await prisma.hotel.findMany({
@@ -178,15 +174,15 @@ export class HotelService {
         include: {
           images: true,
         },
-      });
+      })
 
-      return hotels;
+      return hotels
     } catch (error) {
-      logger.error(`Error in searchHotels: ${error}`);
+      logger.error(`Error in searchHotels: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to search hotels", 500);
+      throw new AppError("Failed to search hotels", 500)
     }
   }
 }

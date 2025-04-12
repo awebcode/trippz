@@ -7,18 +7,23 @@
     "start": "bun  --watch src/index.ts",
     "seed": "bun run prisma/seed.ts",
     "watch": "chokidar 'swagger.yaml' -c 'bun start'"
+
   },
   "dependencies": {
     "@prisma/client": "latest",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.8",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
-    "@types/swagger-ui-express": "^4.1.8",
-    "@types/yamljs": "^0.2.34",
+    "@types/multer": "^1.4.12",
+    "@types/passport": "^1.0.17",
+    "@types/passport-apple": "^2.0.3",
+    "@types/passport-facebook": "^3.0.3",
+    "@types/passport-google-oauth2": "^0.1.10",
+    "@types/passport-google-oauth20": "^2.0.16",
     "axios": "latest",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "latest",
     "bcryptjs": "latest",
-    "chokidar-cli": "^3.0.0",
     "cloudinary": "latest",
     "compression": "latest",
     "cookie-parser": "^1.4.7",
@@ -32,7 +37,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "latest",
-    "multer": "latest",
+    "multer": "^1.4.5-lts.2",
     "multer-storage-cloudinary": "latest",
     "passport": "latest",
     "passport-apple": "latest",
@@ -49,19 +54,7 @@
     "zod": "latest"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2",
-    "@types/compression": "^1",
-    "@types/cors": "^2",
-    "@types/express": "^4",
-    "@types/helmet": "^4",
-    "@types/jsonwebtoken": "^9",
-    "@types/multer": "^1",
     "@types/node": "^22",
-    "@types/passport": "^1.0.17",
-    "@types/passport-apple": "^1",
-    "@types/passport-facebook": "^2",
-    "@types/passport-google-oauth20": "^2",
-    "bun-plugin-yml": "^0.3.1",
     "typescript": "^5"
   }
 }

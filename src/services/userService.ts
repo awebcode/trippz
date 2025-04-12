@@ -1,14 +1,9 @@
-import bcrypt from "bcrypt";
-import { prisma } from "../lib/prisma";
-import { AppError } from "../utils/appError";
-import { logger } from "../utils/logger";
-import type {
-  UpdateProfileInput,
-  UpdatePasswordInput,
-  AddAddressInput,
-} from "../validators/userValidators";
-import { uploadToCloudinary } from "../utils/fileUpload";
-
+import bcrypt from "bcrypt"
+import { prisma } from "../lib/prisma"
+import { AppError } from "../utils/appError"
+import { logger } from "../utils/logger"
+import type { UpdateProfileInput, UpdatePasswordInput, AddAddressInput } from "../validators/userValidators"
+import { uploadToCloudinary } from "../utils/fileUpload"
 export class UserService {
   static async getProfile(userId: string) {
     try {
@@ -18,15 +13,15 @@ export class UserService {
           Profile: true,
           addresses: true,
         },
-      });
+      })
 
       if (!user) {
-        throw new AppError("User not found", 404);
+        throw new AppError("User not found", 404)
       }
 
       return {
         id: user.id,
-        full_name: user.full_name,
+        first_name: user.first_name,
         last_name: user.last_name,
         email: user.email,
         phone_number: user.phone_number,
@@ -38,13 +33,13 @@ export class UserService {
         profile_picture: user.profile_picture,
         profile: user.Profile,
         addresses: user.addresses,
-      };
-    } catch (error) {
-      logger.error(`Error in getProfile: ${error}`);
-      if (error instanceof AppError) {
-        throw error;
       }
-      throw new AppError("Failed to get user profile", 500);
+    } catch (error) {
+      logger.error(`Error in getProfile: ${error}`)
+      if (error instanceof AppError) {
+        throw error
+      }
+      throw new AppError("Failed to get user profile", 500)
     }
   }
 
@@ -53,21 +48,19 @@ export class UserService {
       const user = await prisma.user.findUnique({
         where: { id: userId },
         include: { Profile: true },
-      });
+      })
 
       if (!user) {
-        throw new AppError("User not found", 404);
+        throw new AppError("User not found", 404)
       }
 
       // Update user data
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: {
-          full_name: data.full_name ?? user.full_name,
+          first_name: data.first_name ?? user.first_name,
           last_name: data.last_name ?? user.last_name,
-          date_of_birth: data.date_of_birth
-            ? new Date(data.date_of_birth)
-            : user.date_of_birth,
+          date_of_birth: data.date_of_birth ? new Date(data.date_of_birth) : user.date_of_birth,
           address: data.address ?? user.address,
           Profile: {
             update: {
@@ -80,21 +73,21 @@ export class UserService {
         include: {
           Profile: true,
         },
-      });
+      })
 
       return {
         id: updatedUser.id,
-        full_name: updatedUser.full_name,
+        first_name: updatedUser.first_name,
         last_name: updatedUser.last_name,
         email: updatedUser.email,
         profile: updatedUser.Profile,
-      };
-    } catch (error) {
-      logger.error(`Error in updateProfile: ${error}`);
-      if (error instanceof AppError) {
-        throw error;
       }
-      throw new AppError("Failed to update user profile", 500);
+    } catch (error) {
+      logger.error(`Error in updateProfile: ${error}`)
+      if (error instanceof AppError) {
+        throw error
+      }
+      throw new AppError("Failed to update user profile", 500)
     }
   }
 
@@ -102,38 +95,35 @@ export class UserService {
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },
-      });
+      })
 
       if (!user) {
-        throw new AppError("User not found", 404);
+        throw new AppError("User not found", 404)
       }
 
       // Verify current password
-      const isPasswordValid = await bcrypt.compare(
-        data.current_password,
-        user.password_hash
-      );
+      const isPasswordValid = await bcrypt.compare(data.current_password, user.password_hash)
       if (!isPasswordValid) {
-        throw new AppError("Current password is incorrect", 400);
+        throw new AppError("Current password is incorrect", 400)
       }
 
       // Hash new password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(data.new_password, salt);
+      const salt = await bcrypt.genSalt(10)
+      const hashedPassword = await bcrypt.hash(data.new_password, salt)
 
       // Update password
       await prisma.user.update({
         where: { id: userId },
         data: { password_hash: hashedPassword },
-      });
+      })
 
-      return { message: "Password updated successfully" };
+      return { message: "Password updated successfully" }
     } catch (error) {
-      logger.error(`Error in updatePassword: ${error}`);
+      logger.error(`Error in updatePassword: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to update password", 500);
+      throw new AppError("Failed to update password", 500)
     }
   }
 
@@ -141,31 +131,31 @@ export class UserService {
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },
-      });
+      })
 
       if (!user) {
-        throw new AppError("User not found", 404);
+        throw new AppError("User not found", 404)
       }
 
       // Upload file to Cloudinary
-      const imageUrl = await uploadToCloudinary(file.path);
+      const imageUrl = await uploadToCloudinary(file.path)
 
       // Update user profile picture
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: { profile_picture: imageUrl.url },
-      });
+      })
 
       return {
         id: updatedUser.id,
         profile_picture: updatedUser.profile_picture,
-      };
-    } catch (error) {
-      logger.error(`Error in uploadProfilePicture: ${error}`);
-      if (error instanceof AppError) {
-        throw error;
       }
-      throw new AppError("Failed to upload profile picture", 500);
+    } catch (error) {
+      logger.error(`Error in uploadProfilePicture: ${error}`)
+      if (error instanceof AppError) {
+        throw error
+      }
+      throw new AppError("Failed to upload profile picture", 500)
     }
   }
 
@@ -173,10 +163,10 @@ export class UserService {
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },
-      });
+      })
 
       if (!user) {
-        throw new AppError("User not found", 404);
+        throw new AppError("User not found", 404)
       }
 
       // Add new address
@@ -188,15 +178,15 @@ export class UserService {
           country: data.country,
           postal_code: data.postal_code,
         },
-      });
+      })
 
-      return address;
+      return address
     } catch (error) {
-      logger.error(`Error in addAddress: ${error}`);
+      logger.error(`Error in addAddress: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to add address", 500);
+      throw new AppError("Failed to add address", 500)
     }
   }
 
@@ -204,15 +194,15 @@ export class UserService {
     try {
       const addresses = await prisma.address.findMany({
         where: { user_id: userId },
-      });
+      })
 
-      return addresses;
+      return addresses
     } catch (error) {
-      logger.error(`Error in getAddresses: ${error}`);
+      logger.error(`Error in getAddresses: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to get addresses", 500);
+      throw new AppError("Failed to get addresses", 500)
     }
   }
 
@@ -220,27 +210,27 @@ export class UserService {
     try {
       const address = await prisma.address.findUnique({
         where: { id: addressId },
-      });
+      })
 
       if (!address) {
-        throw new AppError("Address not found", 404);
+        throw new AppError("Address not found", 404)
       }
 
       if (address.user_id !== userId) {
-        throw new AppError("You are not authorized to delete this address", 403);
+        throw new AppError("You are not authorized to delete this address", 403)
       }
 
       await prisma.address.delete({
         where: { id: addressId },
-      });
+      })
 
-      return { message: "Address deleted successfully" };
+      return { message: "Address deleted successfully" }
     } catch (error) {
-      logger.error(`Error in deleteAddress: ${error}`);
+      logger.error(`Error in deleteAddress: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to delete address", 500);
+      throw new AppError("Failed to delete address", 500)
     }
   }
 }

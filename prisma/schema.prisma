@@ -12,12 +12,12 @@ generator client {
 
 model User {
   id                  String                @id @default(uuid()) @db.Uuid
-  full_name           String
+  first_name          String
   last_name           String?
   email               String                @unique
-  phone_number        String?               @unique
+  phone_number        String?                @unique
   password_hash       String
-  role                Role                  @default(USER)
+  role                Role
   created_at          DateTime              @default(now())
   updated_at          DateTime              @updatedAt
   email_verified      Boolean               @default(false)
@@ -45,6 +45,10 @@ model User {
   emailVerification   EmailVerification?
   phoneVerification   PhoneVerification?
   passwordReset       PasswordReset?
+  serviceProvider   ServiceProvider?
+  travelAgency      TravelAgency?
+  serviceOrders     ServiceOrder[]
+  packageOrders     PackageOrder[]
 }
 
 model RefreshToken {
@@ -84,13 +88,13 @@ model PasswordReset {
 }
 
 model SocialLogin {
-  id         String         @id @default(uuid()) @db.Uuid
-  userId     String         @db.Uuid
-  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String       @id @default(uuid()) @db.Uuid
+  userId     String       @db.Uuid
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   provider   SocialProvider
   providerId String
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
 
   @@unique([userId, provider])
   @@index([providerId, provider])
@@ -106,6 +110,7 @@ enum Role {
   USER
   SERVICE_PROVIDER
   ADMIN
+  TRAVEL_AGENCY
 }
 
 model Profile {
@@ -251,13 +256,13 @@ enum PolicyType {
 }
 
 model Payment {
-  id              String         @id @default(uuid()) @db.Uuid
-  booking_id      String         @db.Uuid
-  booking         Booking        @relation(fields: [booking_id], references: [id])
-  payment_method  PaymentMethod
-  amount_paid     Float
-  payment_status  PaymentStatus
-  payment_date    DateTime       @default(now())
+  id             String        @id @default(uuid()) @db.Uuid
+  booking_id     String        @db.Uuid
+  booking        Booking       @relation(fields: [booking_id], references: [id])
+  payment_method PaymentMethod
+  amount_paid    Float
+  payment_status PaymentStatus
+  payment_date   DateTime      @default(now())
   payment_details PaymentDetail?
 }
 
@@ -315,6 +320,12 @@ model Image {
   updated_at DateTime @updatedAt
   Flight     Flight?  @relation(fields: [flightId], references: [id])
   flightId   String?  @db.Uuid
+  service_id        String?          @db.Uuid
+  service           Service?         @relation(fields: [service_id], references: [id])
+  package_id        String?          @db.Uuid
+  package           TravelPackage?   @relation(fields: [package_id], references: [id])
+  destination_id    String?          @db.Uuid
+  destination       Destination?     @relation(fields: [destination_id], references: [id])
 }
 
 model SearchHistory {
@@ -436,14 +447,14 @@ enum TransactionType {
 }
 
 model ExternalIntegration {
-  id               String @id @default(uuid()) @db.Uuid
+  id               String   @id @default(uuid()) @db.Uuid
   integration_name String
   api_key          String
 
-  user_id    String   @db.Uuid
-  user       User     @relation(fields: [user_id], references: [id])
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  user_id          String   @db.Uuid
+  user             User     @relation(fields: [user_id], references: [id])
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
 }
 
 model UserActivity {
@@ -473,4 +484,130 @@ model Address {
   postal_code String
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+}
+
+model ServiceProvider {
+  id                String    @id @default(uuid()) @db.Uuid
+  user_id           String    @unique @db.Uuid
+  user              User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  business_name     String
+  business_address  String?
+  business_phone    String?
+  business_email    String?
+  website           String?
+  description       String?
+  verified          Boolean   @default(false)
+  rating            Float     @default(0)
+  services          Service[]
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+}
+
+model Service {
+  id                 String          @id @default(uuid()) @db.Uuid
+  provider_id        String          @db.Uuid
+  provider           ServiceProvider @relation(fields: [provider_id], references: [id], onDelete: Cascade)
+  name               String
+  description        String
+  price              Float
+  duration           Int             // Duration in minutes
+  location           String?
+  category           String
+  availability       Json?           // JSON object with availability details
+  max_participants   Int?
+  images             Image[]
+  created_at         DateTime        @default(now())
+  updated_at         DateTime        @updatedAt
+  ServiceOrder       ServiceOrder[]
+}
+
+model ServiceOrder {
+  id                 String          @id @default(uuid()) @db.Uuid
+  service_id         String          @db.Uuid
+  service            Service         @relation(fields: [service_id], references: [id])
+  user_id            String          @db.Uuid
+  user               User            @relation(fields: [user_id], references: [id])
+  status             OrderStatus     @default(PENDING)
+  date               DateTime
+  participants       Int             @default(1)
+  total_price        Float
+  special_requests   String?
+  provider_response  String?
+  created_at         DateTime        @default(now())
+  updated_at         DateTime        @updatedAt
+}
+
+model TravelAgency {
+  id                String           @id @default(uuid()) @db.Uuid
+  user_id           String           @unique @db.Uuid
+  user              User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  agency_name       String
+  agency_address    String?
+  agency_phone      String?
+  agency_email      String?
+  website           String?
+  description       String?
+  verified          Boolean          @default(false)
+  rating            Float            @default(0)
+  packages          TravelPackage[]
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+}
+
+model TravelPackage {
+  id                String           @id @default(uuid()) @db.Uuid
+  agency_id         String           @db.Uuid
+  agency            TravelAgency     @relation(fields: [agency_id], references: [id], onDelete: Cascade)
+  name              String
+  description       String
+  price             Float
+  duration          Int              // Duration in days
+  destinations      Destination[]
+  inclusions        String[]
+  exclusions        String[]
+  itinerary         Json?            // JSON object with day-by-day itinerary
+  max_travelers     Int?
+  images            Image[]
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  PackageOrder      PackageOrder[]
+}
+
+model PackageOrder {
+  id                String           @id @default(uuid()) @db.Uuid
+  package_id        String           @db.Uuid
+  package           TravelPackage    @relation(fields: [package_id], references: [id])
+  user_id           String           @db.Uuid
+  user              User             @relation(fields: [user_id], references: [id])
+  status            OrderStatus      @default(PENDING)
+  start_date        DateTime
+  travelers         Int              @default(1)
+  total_price       Float
+  special_requests  String?
+  agency_response   String?
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+}
+
+model Destination {
+  id                String           @id @default(uuid()) @db.Uuid
+  name              String
+  country           String
+  city              String?
+  description       String
+  highlights        String[]
+  best_time_to_visit String?
+  travel_tips       String[]
+  images            Image[]
+  packages          TravelPackage[]
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  COMPLETED
+  CANCELLED
 }

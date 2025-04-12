@@ -22,9 +22,7 @@ declare global {
 }
 
 // Set cookie options
-const getCookieOptions = () => {
-  const isProduction = process.env.NODE_ENV === "production"
-  
+const getCookieOptions = (isProduction: boolean) => {
   return {
     httpOnly: true,
     secure: isProduction,
@@ -75,8 +73,8 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
           // Set new cookies
           const isProduction = process.env.NODE_ENV === "production"
-          res.cookie("accessToken", accessToken, getCookieOptions())
-          res.cookie("refreshToken", refreshToken, getCookieOptions())
+          res.cookie("accessToken", accessToken, getCookieOptions(isProduction))
+          res.cookie("refreshToken", refreshToken, getCookieOptions(isProduction))
 
           // Verify the new access token
           const decoded = verifyToken<JwtPayload>(accessToken, TokenType.ACCESS)
@@ -124,12 +122,13 @@ export const restrictTo = (...roles: string[]) => {
 
 // Set tokens in cookies
 export const setTokenCookies = (res: Response, accessToken: string, refreshToken: string) => {
-  res.cookie("accessToken", accessToken, getCookieOptions())
-  res.cookie("refreshToken", refreshToken, getCookieOptions())
+  const isProduction = process.env.NODE_ENV === "production"
+  res.cookie("accessToken", accessToken, getCookieOptions(isProduction))
+  res.cookie("refreshToken", refreshToken, getCookieOptions(isProduction))
 }
 
 // Clear token cookies
 export const clearTokenCookies = (res: Response) => {
-  res.cookie("accessToken", "", getCookieOptions())
-  res.cookie("refreshToken", "", getCookieOptions())
+  res.cookie("accessToken", "", { maxAge: 0, path: "/" })
+  res.cookie("refreshToken", "", { maxAge: 0, path: "/" })
 }
