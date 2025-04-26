@@ -1,10 +1,10 @@
-import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { Strategy as FacebookStrategy } from "passport-facebook";
-import { Strategy as AppleStrategy } from "passport-apple";
-import { prisma } from "../lib/prisma";
-import { logger } from "../utils/logger";
-import crypto from "crypto";
+import passport from "passport"
+import { Strategy as GoogleStrategy } from "passport-google-oauth20"
+import { Strategy as FacebookStrategy } from "passport-facebook"
+import { Strategy as AppleStrategy } from "passport-apple"
+import { prisma } from "../lib/prisma"
+import { logger } from "../utils/logger"
+import crypto from "crypto"
 
 // Configure Google Strategy
 passport.use(
@@ -12,7 +12,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      callbackURL: `${process.env.API_URL}/api/auth/google/callback`,
+      callbackURL: `${process.env.API_URL}/api/v1/auth/google/callback`,
       scope: ["profile", "email"],
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -22,7 +22,7 @@ passport.use(
           where: {
             email: profile.emails?.[0].value,
           },
-        });
+        })
 
         if (!user) {
           // Create new user
@@ -50,7 +50,7 @@ passport.use(
                 },
               },
             },
-          });
+          })
         } else {
           // Check if social login exists
           const socialLogin = await prisma.socialLogin.findFirst({
@@ -58,7 +58,7 @@ passport.use(
               userId: user.id,
               provider: "GOOGLE",
             },
-          });
+          })
 
           if (!socialLogin) {
             // Add social login
@@ -68,18 +68,18 @@ passport.use(
                 provider: "GOOGLE",
                 providerId: profile.id,
               },
-            });
+            })
           }
         }
 
-        return done(null, user);
+        return done(null, user)
       } catch (error) {
-        logger.error(`Error in Google authentication: ${error}`);
-        return done(error as Error, undefined);
+        logger.error(`Error in Google authentication: ${error}`)
+        return done(error as Error, undefined)
       }
-    }
-  )
-);
+    },
+  ),
+)
 
 // Configure Facebook Strategy
 passport.use(
@@ -87,7 +87,7 @@ passport.use(
     {
       clientID: process.env.FACEBOOK_APP_ID as string,
       clientSecret: process.env.FACEBOOK_APP_SECRET as string,
-      callbackURL: `${process.env.API_URL}/api/auth/facebook/callback`,
+      callbackURL: `${process.env.API_URL}/api/v1/auth/facebook/callback`,
       profileFields: ["id", "emails", "name", "picture.type(large)"],
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -97,14 +97,14 @@ passport.use(
           where: {
             email: profile.emails?.[0].value,
           },
-        });
+        })
 
         if (!user) {
           // Create new user
           user = await prisma.user.create({
             data: {
               email: profile.emails?.[0].value as string,
-             first_name: profile.name?.givenName || "Facebook",
+              first_name: profile.name?.givenName || "Facebook",
               last_name: profile.name?.familyName || "User",
               phone_number: `facebook_${Date.now()}`, // Placeholder
               password_hash: crypto.randomBytes(16).toString("hex"), // Random password
@@ -125,7 +125,7 @@ passport.use(
                 },
               },
             },
-          });
+          })
         } else {
           // Check if social login exists
           const socialLogin = await prisma.socialLogin.findFirst({
@@ -133,7 +133,7 @@ passport.use(
               userId: user.id,
               provider: "FACEBOOK",
             },
-          });
+          })
 
           if (!socialLogin) {
             // Add social login
@@ -143,18 +143,18 @@ passport.use(
                 provider: "FACEBOOK",
                 providerId: profile.id,
               },
-            });
+            })
           }
         }
 
-        return done(null, user);
+        return done(null, user)
       } catch (error) {
-        logger.error(`Error in Facebook authentication: ${error}`);
-        return done(error as Error, undefined);
+        logger.error(`Error in Facebook authentication: ${error}`)
+        return done(error as Error, undefined)
       }
-    }
-  )
-);
+    },
+  ),
+)
 
 // Configure Apple Strategy
 passport.use(
@@ -162,7 +162,7 @@ passport.use(
     {
       clientID: process.env.APPLE_CLIENT_ID as string,
       clientSecret: process.env.APPLE_CLIENT_SECRET as string,
-      callbackURL: `${process.env.API_URL}/api/auth/apple/callback`,
+      callbackURL: `${process.env.API_URL}/api/v1/auth/apple/callback`,
       passReqToCallback: true,
       teamID: process.env.APPLE_TEAM_ID as string,
       keyID: process.env.APPLE_KEY_ID as string,
@@ -172,16 +172,14 @@ passport.use(
     async (req, accessToken, refreshToken, idToken, profile, done) => {
       try {
         // Parse the id token to get user info
-        const tokenPayload = JSON.parse(
-          Buffer.from(idToken.split(".")[1], "base64").toString()
-        ) as {
-          email?: string;
-          sub: string;
-          email_verified?: boolean;
-        };
+        const tokenPayload = JSON.parse(Buffer.from(idToken.split(".")[1], "base64").toString()) as {
+          email?: string
+          sub: string
+          email_verified?: boolean
+        }
 
         if (!tokenPayload.email) {
-          return done(new Error("Email not provided by Apple"), undefined);
+          return done(new Error("Email not provided by Apple"), undefined)
         }
 
         // Check if user exists
@@ -189,12 +187,12 @@ passport.use(
           where: {
             email: tokenPayload.email,
           },
-        });
+        })
 
         if (!user) {
           // Get name from request (Apple sends name only on first login)
-          const firstName = req.body?.firstName || "Apple";
-          const lastName = req.body?.lastName || "User";
+          const firstName = req.body?.firstName || "Apple"
+          const lastName = req.body?.lastName || "User"
 
           // Create new user
           user = await prisma.user.create({
@@ -220,7 +218,7 @@ passport.use(
                 },
               },
             },
-          });
+          })
         } else {
           // Check if social login exists
           const socialLogin = await prisma.socialLogin.findFirst({
@@ -228,7 +226,7 @@ passport.use(
               userId: user.id,
               provider: "APPLE",
             },
-          });
+          })
 
           if (!socialLogin) {
             // Add social login
@@ -238,23 +236,23 @@ passport.use(
                 provider: "APPLE",
                 providerId: tokenPayload.sub,
               },
-            });
+            })
           }
         }
 
-        return done(null, user);
+        return done(null, user)
       } catch (error) {
-        logger.error(`Error in Apple authentication: ${error}`);
-        return done(error as Error, undefined);
+        logger.error(`Error in Apple authentication: ${error}`)
+        return done(error as Error, undefined)
       }
-    }
-  )
-);
+    },
+  ),
+)
 
 // Serialize user to session
 passport.serializeUser((user: any, done) => {
-  done(null, user.id);
-});
+  done(null, user.id)
+})
 
 // Deserialize user from session
 passport.deserializeUser(async (id: string, done) => {
@@ -262,11 +260,11 @@ passport.deserializeUser(async (id: string, done) => {
     const user = await prisma.user.findUnique({
       where: { id },
       select: { id: true, email: true, role: true },
-    });
-    done(null, user);
+    })
+    done(null, user)
   } catch (error) {
-    done(error, null);
+    done(error, null)
   }
-});
+})
 
-export default passport;
+export default passport

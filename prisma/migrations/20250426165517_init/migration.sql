@@ -2,7 +2,7 @@
 CREATE TYPE "SocialProvider" AS ENUM ('GOOGLE', 'FACEBOOK', 'APPLE');
 
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('USER', 'SERVICE_PROVIDER', 'ADMIN');
+CREATE TYPE "Role" AS ENUM ('USER', 'SERVICE_PROVIDER', 'ADMIN', 'TRAVEL_AGENCY');
 
 -- CreateEnum
 CREATE TYPE "TripType" AS ENUM ('ADVENTURE', 'MEDICAL', 'BUSINESS', 'LEISURE');
@@ -32,7 +32,7 @@ CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED')
 CREATE TYPE "SearchType" AS ENUM ('FLIGHT', 'HOTEL', 'TRIP');
 
 -- CreateEnum
-CREATE TYPE "NotificationType" AS ENUM ('NEW_BOOKING', 'TRIP_UPDATES', 'SPECIAL_OFFERS');
+CREATE TYPE "NotificationType" AS ENUM ('SYSTEM', 'BOOKING', 'PAYMENT', 'PROMOTIONAL', 'REMINDER', 'ALERT', 'NEW_BOOKING', 'TRIP_UPDATES', 'SPECIAL_OFFERS');
 
 -- CreateEnum
 CREATE TYPE "FilterType" AS ENUM ('PRICE_RANGE', 'AMENITIES', 'LOCATION', 'BEDROOMS', 'BATHROOMS', 'SEAT_CLASS');
@@ -70,12 +70,25 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
+CREATE TABLE "UserSession" (
+    "id" UUID NOT NULL,
+    "ip_address" TEXT,
+    "user_agent" TEXT,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "user_id" UUID NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "UserSession_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "RefreshToken" (
     "id" UUID NOT NULL,
     "userId" UUID NOT NULL,
     "token" TEXT NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "RefreshToken_pkey" PRIMARY KEY ("id")
 );
@@ -86,7 +99,7 @@ CREATE TABLE "EmailVerification" (
     "userId" UUID NOT NULL,
     "token" TEXT NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "EmailVerification_pkey" PRIMARY KEY ("id")
 );
@@ -97,7 +110,7 @@ CREATE TABLE "PhoneVerification" (
     "userId" UUID NOT NULL,
     "code" TEXT NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "PhoneVerification_pkey" PRIMARY KEY ("id")
 );
@@ -108,7 +121,7 @@ CREATE TABLE "PasswordReset" (
     "userId" UUID NOT NULL,
     "token" TEXT NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "PasswordReset_pkey" PRIMARY KEY ("id")
 );
@@ -119,8 +132,8 @@ CREATE TABLE "SocialLogin" (
     "userId" UUID NOT NULL,
     "provider" "SocialProvider" NOT NULL,
     "providerId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "SocialLogin_pkey" PRIMARY KEY ("id")
 );
@@ -196,6 +209,8 @@ CREATE TABLE "Booking" (
     "end_date" TIMESTAMP(3) NOT NULL,
     "status" "BookingStatus" NOT NULL,
     "total_price" DOUBLE PRECISION NOT NULL,
+    "guests" INTEGER DEFAULT 0,
+    "special_requests" TEXT,
     "flight_id" UUID,
     "hotel_id" UUID,
     "trip_id" UUID,
@@ -237,6 +252,8 @@ CREATE TABLE "Payment" (
     "amount_paid" DOUBLE PRECISION NOT NULL,
     "payment_status" "PaymentStatus" NOT NULL,
     "payment_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
 );
@@ -312,12 +329,45 @@ CREATE TABLE "RecentSearch" (
 -- CreateTable
 CREATE TABLE "Notification" (
     "id" UUID NOT NULL,
+    "title" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
     "user_id" UUID NOT NULL,
     "notification_type" "NotificationType" NOT NULL,
-    "is_enabled" BOOLEAN NOT NULL DEFAULT true,
+    "entity_id" UUID,
+    "entity_type" TEXT,
+    "metadata" JSONB,
+    "is_read" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "NotificationPreference" (
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "email_enabled" BOOLEAN NOT NULL DEFAULT true,
+    "sms_enabled" BOOLEAN NOT NULL DEFAULT true,
+    "push_enabled" BOOLEAN NOT NULL DEFAULT true,
+    "in_app_enabled" BOOLEAN NOT NULL DEFAULT true,
+    "system_enabled" BOOLEAN NOT NULL DEFAULT true,
+    "booking_enabled" BOOLEAN NOT NULL DEFAULT true,
+    "payment_enabled" BOOLEAN NOT NULL DEFAULT true,
+    "promotional_enabled" BOOLEAN NOT NULL DEFAULT false,
+    "reminder_enabled" BOOLEAN NOT NULL DEFAULT true,
+    "alert_enabled" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "NotificationPreference_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PushToken" (
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "token" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PushToken_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -551,6 +601,22 @@ CREATE TABLE "Destination" (
 );
 
 -- CreateTable
+CREATE TABLE "SystemSetting" (
+    "id" TEXT NOT NULL,
+    "maintenance_mode" BOOLEAN NOT NULL DEFAULT false,
+    "booking_fee_percentage" DOUBLE PRECISION NOT NULL DEFAULT 5.0,
+    "default_currency" TEXT NOT NULL DEFAULT 'USD',
+    "support_email" TEXT NOT NULL,
+    "support_phone" TEXT NOT NULL,
+    "terms_url" TEXT NOT NULL,
+    "privacy_url" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SystemSetting_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_DestinationToTravelPackage" (
     "A" UUID NOT NULL,
     "B" UUID NOT NULL,
@@ -599,6 +665,9 @@ CREATE UNIQUE INDEX "TravelAgency_user_id_key" ON "TravelAgency"("user_id");
 
 -- CreateIndex
 CREATE INDEX "_DestinationToTravelPackage_B_index" ON "_DestinationToTravelPackage"("B");
+
+-- AddForeignKey
+ALTER TABLE "UserSession" ADD CONSTRAINT "UserSession_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -686,6 +755,12 @@ ALTER TABLE "RecentSearch" ADD CONSTRAINT "RecentSearch_user_id_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "NotificationPreference" ADD CONSTRAINT "NotificationPreference_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PushToken" ADD CONSTRAINT "PushToken_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UserRole" ADD CONSTRAINT "UserRole_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

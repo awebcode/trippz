@@ -1,24 +1,63 @@
-import express from "express"
-import { FlightController } from "../controllers/flightController"
-import { protect, restrictTo } from "../middleware/authMiddleware"
-import { validateRequest } from "../middleware/validateRequest"
-import { createFlightSchema, updateFlightSchema } from "../validators/flightValidators"
+import express from "express";
+import { FlightController } from "../controllers/flightController";
+import { protect } from "../middleware/authMiddleware";
+import { validateRequest } from "../middleware/validateRequest";
+import {
+  createFlightSchema,
+  updateFlightSchema,
+  searchFlightsSchema,
+} from "../validators/flightValidators";
+import { idParamSchema } from "../validators/commonValidators";
 
-const router = express.Router()
+const router = express.Router();
 
 // Public routes
-router.get("/", FlightController.getFlights)
-router.get("/search", FlightController.searchFlights)
-router.get("/:id", FlightController.getFlightById)
+router.get(
+  "/",
+  validateRequest({ query: searchFlightsSchema }),
+  FlightController.getFlights
+);
+
+router.get(
+  "/search",
+  validateRequest({ query: searchFlightsSchema }),
+  FlightController.searchFlights
+);
+
+router.get(
+  "/:id",
+  validateRequest({ params: idParamSchema }),
+  FlightController.getFlightById
+);
+
+router.get(
+  "/:id/availability",
+  validateRequest({ params: idParamSchema }),
+  FlightController.getFlightAvailability
+);
 
 // Protected routes
-router.use(protect)
-router.use(restrictTo("ADMIN", "SERVICE_PROVIDER"))
+router.use(protect);
 
-router.post("/", validateRequest({ body: createFlightSchema }), FlightController.createFlight)
+router.post(
+  "/",
+  validateRequest({ body: createFlightSchema }),
+  FlightController.createFlight
+);
 
-router.put("/:id", validateRequest({ body: updateFlightSchema }), FlightController.updateFlight)
+router.patch(
+  "/:id",
+  validateRequest({
+    params: idParamSchema,
+    body: updateFlightSchema,
+  }),
+  FlightController.updateFlight
+);
 
-router.delete("/:id", FlightController.deleteFlight)
+router.delete(
+  "/:id",
+  validateRequest({ params: idParamSchema }),
+  FlightController.deleteFlight
+);
 
-export { router as flightRoutes }
+export { router as flightRoutes };

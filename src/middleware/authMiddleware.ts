@@ -1,134 +1,185 @@
-import type { Request, Response, NextFunction } from "express"
-import { prisma } from "../lib/prisma"
-import { AppError } from "../utils/appError"
-import { verifyToken, TokenType, refreshTokens } from "../utils/tokens"
-import { logger } from "../utils/logger"
+import type { Request, Response, NextFunction } from "express";
+import { prisma } from "../lib/prisma";
+import { AppError } from "../utils/appError";
+import { logger } from "../utils/logger";
+import { AuthService } from "../services/authService";
+import { config } from "../config";
 
-interface JwtPayload {
-  id: string
-  role: string
-  type: TokenType
-}
+
 
 declare global {
   namespace Express {
     interface Request {
       user?: {
-        id: string
-        role: string
-      }
+        id: string;
+        role: string;
+        email: string;
+        first_name: string;
+      };
+      sessionId?: string;
+      validatedQuery?: any;
     }
   }
 }
 
-// Set cookie options
-const getCookieOptions = (isProduction: boolean) => {
+// Cookie options
+export const getCookieOptions = (expires?: number) => {
+  const isProduction = config.server.nodeEnv === "production";
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "strict" : "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    sameSite: isProduction ? ("strict" as const) : ("lax" as const),
+    maxAge: expires || 30 * 24 * 60 * 60 * 1000, // 30 days
     path: "/",
-  } as const
-}
+  };
+};
 
-// Protect routes - verify access token
+/**
+ * Auth Middleware
+ * - Verifies access token from cookies or Authorization header
+ * - Refreshes tokens if access token is expired using refresh token
+ * - Validates session in DB
+ * - Attaches user and session info to req
+ */
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // 1) Get token from authorization header or cookies
-    let token: string | undefined
+    let accessToken: string | undefined;
 
-    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-      token = req.headers.authorization.split(" ")[1]
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer") &&
+      req.headers.authorization.split(" ")[1].startsWith("ey")
+    ) {
+      accessToken = req.headers.authorization.split(" ")[1];
     } else if (req.cookies?.accessToken) {
-      token = req.cookies.accessToken
+      accessToken = req.cookies.accessToken;
     }
 
-    if (!token) {
-      return next(new AppError("You are not logged in. Please log in to get access.", 401))
+    const refreshToken = req.cookies?.refreshToken;
+
+    // Early exit if no tokens are provided
+    if (!accessToken && !refreshToken) {
+      return next(
+        new AppError("Authentication Failed, Please login and try again.", 401)
+      );
     }
 
     try {
-      // 2) Verify token
-      const decoded = verifyToken<JwtPayload>(token, TokenType.ACCESS)
-
-      // 3) Check if user still exists
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.id },
-        select: { id: true, role: true },
-      })
-
-      if (!user) {
-        return next(new AppError("The user belonging to this token no longer exists.", 401))
-      }
-
-      // 4) Grant access to protected route
-      req.user = user
-      next()
-    } catch (error) {
-      // If access token is invalid or expired, try to use refresh token
-      if (req.cookies?.refreshToken) {
+      // 2) Try verifying access token
+      if (accessToken) {
         try {
-          const { accessToken, refreshToken } = await refreshTokens(req.cookies.refreshToken)
+          const decoded = await AuthService.VerifyJwtToken(accessToken, config.jwt.secret);
 
-          // Set new cookies
-          const isProduction = process.env.NODE_ENV === "production"
-          res.cookie("accessToken", accessToken, getCookieOptions(isProduction))
-          res.cookie("refreshToken", refreshToken, getCookieOptions(isProduction))
+          // Validate session
+          const session = await AuthService.validateSession(
+            decoded.id,
+            decoded.session_id
+          );
 
-          // Verify the new access token
-          const decoded = verifyToken<JwtPayload>(accessToken, TokenType.ACCESS)
-
-          // Check if user still exists
+          // Fetch user
           const user = await prisma.user.findUnique({
             where: { id: decoded.id },
-            select: { id: true, role: true },
-          })
+            select: { id: true, role: true, email: true, first_name: true },
+          });
 
           if (!user) {
-            return next(new AppError("The user belonging to this token no longer exists.", 401))
+            return next(
+              new AppError("The user belonging to this token no longer exists.", 401)
+            );
           }
 
-          // Grant access to protected route
-          req.user = user
-          next()
-        } catch (refreshError) {
-          logger.error(`Error refreshing token: ${refreshError}`)
-          return next(new AppError("Your session has expired. Please log in again.", 401))
+          // Attach user and session info to request
+          req.user = user;
+          req.sessionId = session.id;
+          return next();
+        } catch (error) {
+          if (error instanceof AppError && error.message !== "Token expired") {
+            return next(error);
+          }
+          // If token expired, proceed to refresh logic
         }
-      } else {
-        return next(new AppError("Invalid token. Please log in again.", 401))
       }
+
+      // 3) Handle refresh token if access token is missing or expired
+      if (!refreshToken) {
+        return next(new AppError("Refresh token required", 400));
+      }
+
+      // Verify the new access token
+      const decoded = await AuthService.VerifyJwtToken(refreshToken, config.jwt.secret);
+
+      const session = await AuthService.validateSession(decoded.id, decoded.session_id);
+
+      // Fetch user
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+        select: { id: true, role: true, email: true, first_name: true },
+      });
+      if (!user) {
+        return next(
+          new AppError("The user belonging to this token no longer exists.", 401)
+        );
+      }
+
+      const newPayload = {
+        id: decoded.id,
+        first_name: user.first_name,
+        role: decoded.role,
+        email: user.email,
+        session_id: session.id,
+      };
+
+      const newAccessToken = await AuthService.generateAccessToken(
+        newPayload,
+      );
+
+      const newRefreshToken = await AuthService.generateRefreshToken(
+        newPayload,
+      );
+
+      // Set new cookies
+      await AuthService.setAuthCookies(res, newAccessToken, newRefreshToken);
+
+      // Validate session
+
+      if (!user) {
+        return next(
+          new AppError("The user belonging to this token no longer exists.", 401)
+        );
+      }
+
+      // Attach user and session info to request
+      req.user = user;
+      req.sessionId = session.id;
+      return next();
+    } catch (error) {
+      logger.error(`Error refreshing token: ${error}`);
+      return next(new AppError("Your session has expired. Please log in again.", 401));
     }
   } catch (error) {
-    next(error)
+    logger.error(`Authentication error: ${error}`);
+    return next(
+      error instanceof AppError ? error : new AppError("Authentication failed", 401)
+    );
   }
-}
+};
 
-// Restrict to specific roles
+/**
+ * Restrict to specific roles
+ */
 export const restrictTo = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return next(new AppError("You are not logged in.", 401))
+      return next(new AppError("You are not logged in.", 401));
     }
 
     if (!roles.includes(req.user.role)) {
-      return next(new AppError("You do not have permission to perform this action.", 403))
+      return next(
+        new AppError("You do not have permission to perform this action.", 403)
+      );
     }
 
-    next()
-  }
-}
-
-// Set tokens in cookies
-export const setTokenCookies = (res: Response, accessToken: string, refreshToken: string) => {
-  const isProduction = process.env.NODE_ENV === "production"
-  res.cookie("accessToken", accessToken, getCookieOptions(isProduction))
-  res.cookie("refreshToken", refreshToken, getCookieOptions(isProduction))
-}
-
-// Clear token cookies
-export const clearTokenCookies = (res: Response) => {
-  res.cookie("accessToken", "", { maxAge: 0, path: "/" })
-  res.cookie("refreshToken", "", { maxAge: 0, path: "/" })
-}
+    next();
+  };
+};

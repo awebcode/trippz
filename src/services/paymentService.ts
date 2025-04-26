@@ -1,15 +1,15 @@
-import { prisma } from "../lib/prisma";
-import { AppError } from "../utils/appError";
-import { logger } from "../utils/logger";
-import type { CreatePaymentInput } from "../validators/paymentValidators";
-import Stripe from "stripe";
-import { EmailService } from "../utils/email";
-import { SmsService } from "../utils/sms";
+import { prisma } from "../lib/prisma"
+import { AppError } from "../utils/appError"
+import { logger } from "../utils/logger"
+import type { CreatePaymentInput } from "../validators/paymentValidators"
+import Stripe from "stripe"
+import { EmailService } from "../utils/email"
+import { SmsService } from "../utils/sms"
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2025-03-31.basil",
-});
+})
 
 export class PaymentService {
   static async processPayment(userId: string, data: CreatePaymentInput) {
@@ -20,41 +20,38 @@ export class PaymentService {
         include: {
           user: true,
         },
-      });
+      })
 
       if (!booking) {
-        throw new AppError("Booking not found", 404);
+        throw new AppError("Booking not found", 404)
       }
 
       if (booking.user_id !== userId) {
-        throw new AppError(
-          "You are not authorized to make payment for this booking",
-          403
-        );
+        throw new AppError("You are not authorized to make payment for this booking", 403)
       }
 
       if (booking.status !== "PENDING") {
-        throw new AppError("Payment can only be processed for pending bookings", 400);
+        throw new AppError("Payment can only be processed for pending bookings", 400)
       }
 
-      let paymentResult;
+      let paymentResult
 
       // Process payment based on payment method
       switch (data.payment_method) {
         case "CREDIT_CARD":
-          paymentResult = await this.processStripePayment(booking, data);
-          break;
+          paymentResult = await this.processStripePayment(booking, data)
+          break
         case "PAYPAL":
-          paymentResult = await this.processPayPalPayment(booking, data);
-          break;
+          paymentResult = await this.processPayPalPayment(booking, data)
+          break
         case "GOOGLE_PAY":
-          paymentResult = await this.processGooglePayPayment(booking, data);
-          break;
+          paymentResult = await this.processGooglePayPayment(booking, data)
+          break
         case "APPLE_PAY":
-          paymentResult = await this.processApplePayPayment(booking, data);
-          break;
+          paymentResult = await this.processApplePayPayment(booking, data)
+          break
         default:
-          throw new AppError("Unsupported payment method", 400);
+          throw new AppError("Unsupported payment method", 400)
       }
 
       // Create payment record
@@ -75,13 +72,13 @@ export class PaymentService {
         include: {
           payment_details: true,
         },
-      });
+      })
 
       // Update booking status
       await prisma.booking.update({
         where: { id: data.booking_id },
         data: { status: "CONFIRMED" },
-      });
+      })
 
       // Record transaction
       await prisma.transaction.create({
@@ -91,29 +88,26 @@ export class PaymentService {
           amount: booking.total_price,
           status: "SUCCESS",
         },
-      });
+      })
 
       // Send confirmation notifications
       await EmailService.sendBookingConfirmation(booking.user.email, {
         ...booking,
         payment: payment,
-      });
+      })
       if (booking.user.phone_number) {
-        await SmsService.sendBookingConfirmationSms(
-          booking.user.phone_number,
-          booking.id
-        );
+        await SmsService.sendBookingConfirmationSms(booking.user.phone_number, booking.id)
       }
       return {
         payment,
         message: "Payment processed successfully",
-      };
-    } catch (error) {
-      logger.error(`Error in processPayment: ${error}`);
-      if (error instanceof AppError) {
-        throw error;
       }
-      throw new AppError("Failed to process payment", 500);
+    } catch (error) {
+      logger.error(`Error in processPayment: ${error}`)
+      if (error instanceof AppError) {
+        throw error
+      }
+      throw new AppError("Failed to process payment", 500)
     }
   }
 
@@ -121,22 +115,22 @@ export class PaymentService {
     try {
       // Validate card details
       if (!data.card_number || !data.card_expiry || !data.card_cvv) {
-        throw new AppError("Card details are required for credit card payments", 400);
+        throw new AppError("Card details are required for credit card payments", 400)
       }
 
       // Parse expiry date
-      const [expiryMonth, expiryYear] = data.card_expiry.split("/");
+      const [expiryMonth, expiryYear] = data.card_expiry.split("/")
 
       // Create payment method
       const paymentMethod = await stripe.paymentMethods.create({
         type: "card",
         card: {
           number: data.card_number,
-          exp_month: parseInt(expiryMonth),
-          exp_year: parseInt(expiryYear),
+          exp_month: Number.parseInt(expiryMonth),
+          exp_year: Number.parseInt(expiryYear),
           cvc: data.card_cvv,
         },
-      });
+      })
 
       // Create payment intent
       const paymentIntent = await stripe.paymentIntents.create({
@@ -149,7 +143,7 @@ export class PaymentService {
           booking_id: booking.id,
           user_id: booking.user_id,
         },
-      });
+      })
 
       return {
         transactionId: paymentIntent.id,
@@ -160,10 +154,10 @@ export class PaymentService {
           amount: paymentIntent.amount,
           status: paymentIntent.status,
         }),
-      };
+      }
     } catch (error) {
-      logger.error(`Error processing Stripe payment: ${error}`);
-      throw new AppError("Failed to process credit card payment", 500);
+      logger.error(`Error processing Stripe payment: ${error}`)
+      throw new AppError("Failed to process credit card payment", 500)
     }
   }
 
@@ -173,7 +167,7 @@ export class PaymentService {
       // This is a simplified version for demonstration purposes
 
       // Simulate PayPal payment
-      const transactionId = `PAYPAL_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const transactionId = `PAYPAL_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`
 
       return {
         transactionId,
@@ -183,10 +177,10 @@ export class PaymentService {
           amount: booking.total_price,
           status: "COMPLETED",
         }),
-      };
+      }
     } catch (error) {
-      logger.error(`Error processing PayPal payment: ${error}`);
-      throw new AppError("Failed to process PayPal payment", 500);
+      logger.error(`Error processing PayPal payment: ${error}`)
+      throw new AppError("Failed to process PayPal payment", 500)
     }
   }
 
@@ -196,7 +190,7 @@ export class PaymentService {
       // This is a simplified version for demonstration purposes
 
       // Simulate Google Pay payment
-      const transactionId = `GPAY_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const transactionId = `GPAY_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`
 
       return {
         transactionId,
@@ -206,10 +200,10 @@ export class PaymentService {
           amount: booking.total_price,
           status: "COMPLETED",
         }),
-      };
+      }
     } catch (error) {
-      logger.error(`Error processing Google Pay payment: ${error}`);
-      throw new AppError("Failed to process Google Pay payment", 500);
+      logger.error(`Error processing Google Pay payment: ${error}`)
+      throw new AppError("Failed to process Google Pay payment", 500)
     }
   }
 
@@ -219,7 +213,7 @@ export class PaymentService {
       // This is a simplified version for demonstration purposes
 
       // Simulate Apple Pay payment
-      const transactionId = `APAY_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const transactionId = `APAY_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`
 
       return {
         transactionId,
@@ -229,10 +223,10 @@ export class PaymentService {
           amount: booking.total_price,
           status: "COMPLETED",
         }),
-      };
+      }
     } catch (error) {
-      logger.error(`Error processing Apple Pay payment: ${error}`);
-      throw new AppError("Failed to process Apple Pay payment", 500);
+      logger.error(`Error processing Apple Pay payment: ${error}`)
+      throw new AppError("Failed to process Apple Pay payment", 500)
     }
   }
 
@@ -248,15 +242,15 @@ export class PaymentService {
           booking: true,
           payment_details: true,
         },
-      });
+      })
 
-      return payments;
+      return payments
     } catch (error) {
-      logger.error(`Error in getPaymentsByUser: ${error}`);
+      logger.error(`Error in getPaymentsByUser: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to get payments", 500);
+      throw new AppError("Failed to get payments", 500)
     }
   }
 
@@ -268,23 +262,23 @@ export class PaymentService {
           booking: true,
           payment_details: true,
         },
-      });
+      })
 
       if (!payment) {
-        throw new AppError("Payment not found", 404);
+        throw new AppError("Payment not found", 404)
       }
 
       if (payment.booking.user_id !== userId) {
-        throw new AppError("You are not authorized to view this payment", 403);
+        throw new AppError("You are not authorized to view this payment", 403)
       }
 
-      return payment;
+      return payment
     } catch (error) {
-      logger.error(`Error in getPaymentById: ${error}`);
+      logger.error(`Error in getPaymentById: ${error}`)
       if (error instanceof AppError) {
-        throw error;
+        throw error
       }
-      throw new AppError("Failed to get payment", 500);
+      throw new AppError("Failed to get payment", 500)
     }
   }
 
@@ -296,38 +290,38 @@ export class PaymentService {
           booking: true,
           payment_details: true,
         },
-      });
+      })
 
       if (!payment) {
-        throw new AppError("Payment not found", 404);
+        throw new AppError("Payment not found", 404)
       }
 
       if (payment.booking.user_id !== userId) {
-        throw new AppError("You are not authorized to refund this payment", 403);
+        throw new AppError("You are not authorized to refund this payment", 403)
       }
 
       if (payment.payment_status !== "SUCCESS") {
-        throw new AppError("Only successful payments can be refunded", 400);
+        throw new AppError("Only successful payments can be refunded", 400)
       }
 
-      let refundResult;
+      let refundResult
 
       // Process refund based on payment method
       switch (payment.payment_method) {
         case "CREDIT_CARD":
-          refundResult = await this.processStripeRefund(payment);
-          break;
+          refundResult = await this.processStripeRefund(payment)
+          break
         case "PAYPAL":
-          refundResult = await this.processPayPalRefund(payment);
-          break;
+          refundResult = await this.processPayPalRefund(payment)
+          break
         case "GOOGLE_PAY":
-          refundResult = await this.processGooglePayRefund(payment);
-          break;
+          refundResult = await this.processGooglePayRefund(payment)
+          break
         case "APPLE_PAY":
-          refundResult = await this.processApplePayRefund(payment);
-          break;
+          refundResult = await this.processApplePayRefund(payment)
+          break
         default:
-          throw new AppError("Unsupported payment method for refund", 400);
+          throw new AppError("Unsupported payment method for refund", 400)
       }
 
       // Update payment status
@@ -342,13 +336,13 @@ export class PaymentService {
             },
           },
         },
-      });
+      })
 
       // Update booking status
       await prisma.booking.update({
         where: { id: payment.booking_id },
         data: { status: "CANCELED" },
-      });
+      })
 
       // Record transaction
       await prisma.transaction.create({
@@ -358,42 +352,42 @@ export class PaymentService {
           amount: payment.amount_paid,
           status: "SUCCESS",
         },
-      });
+      })
 
       const findUser = await prisma.user.findUnique({
         where: { id: userId },
-      });
+      })
 
       // Send refund notification
       if (findUser) {
         await EmailService.sendRefundConfirmation(findUser?.email, {
           ...payment,
           refund: refundResult,
-        });
+        })
       }
 
       return {
         message: "Payment refunded successfully",
         refund: refundResult,
-      };
-    } catch (error) {
-      logger.error(`Error in refundPayment: ${error}`);
-      if (error instanceof AppError) {
-        throw error;
       }
-      throw new AppError("Failed to refund payment", 500);
+    } catch (error) {
+      logger.error(`Error in refundPayment: ${error}`)
+      if (error instanceof AppError) {
+        throw error
+      }
+      throw new AppError("Failed to refund payment", 500)
     }
   }
 
   private static async processStripeRefund(payment: any) {
     try {
       // Parse payment details
-      const paymentData = JSON.parse(payment.payment_details.payment_data);
+      const paymentData = JSON.parse(payment.payment_details.payment_data)
 
       // Process refund through Stripe
       const refund = await stripe.refunds.create({
         payment_intent: paymentData.payment_intent_id,
-      });
+      })
 
       return {
         refundId: refund.id,
@@ -402,10 +396,10 @@ export class PaymentService {
           amount: refund.amount,
           status: refund.status,
         }),
-      };
+      }
     } catch (error) {
-      logger.error(`Error processing Stripe refund: ${error}`);
-      throw new AppError("Failed to process credit card refund", 500);
+      logger.error(`Error processing Stripe refund: ${error}`)
+      throw new AppError("Failed to process credit card refund", 500)
     }
   }
 
@@ -415,7 +409,7 @@ export class PaymentService {
       // This is a simplified version for demonstration purposes
 
       // Simulate PayPal refund
-      const refundId = `PAYPAL_REFUND_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const refundId = `PAYPAL_REFUND_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`
 
       return {
         refundId,
@@ -424,10 +418,10 @@ export class PaymentService {
           amount: payment.amount_paid,
           status: "COMPLETED",
         }),
-      };
+      }
     } catch (error) {
-      logger.error(`Error processing PayPal refund: ${error}`);
-      throw new AppError("Failed to process PayPal refund", 500);
+      logger.error(`Error processing PayPal refund: ${error}`)
+      throw new AppError("Failed to process PayPal refund", 500)
     }
   }
 
@@ -437,7 +431,7 @@ export class PaymentService {
       // This is a simplified version for demonstration purposes
 
       // Simulate Google Pay refund
-      const refundId = `GPAY_REFUND_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const refundId = `GPAY_REFUND_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`
 
       return {
         refundId,
@@ -446,10 +440,10 @@ export class PaymentService {
           amount: payment.amount_paid,
           status: "COMPLETED",
         }),
-      };
+      }
     } catch (error) {
-      logger.error(`Error processing Google Pay refund: ${error}`);
-      throw new AppError("Failed to process Google Pay refund", 500);
+      logger.error(`Error processing Google Pay refund: ${error}`)
+      throw new AppError("Failed to process Google Pay refund", 500)
     }
   }
 
@@ -459,7 +453,7 @@ export class PaymentService {
       // This is a simplified version for demonstration purposes
 
       // Simulate Apple Pay refund
-      const refundId = `APAY_REFUND_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const refundId = `APAY_REFUND_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`
 
       return {
         refundId,
@@ -468,10 +462,10 @@ export class PaymentService {
           amount: payment.amount_paid,
           status: "COMPLETED",
         }),
-      };
+      }
     } catch (error) {
-      logger.error(`Error processing Apple Pay refund: ${error}`);
-      throw new AppError("Failed to process Apple Pay refund", 500);
+      logger.error(`Error processing Apple Pay refund: ${error}`)
+      throw new AppError("Failed to process Apple Pay refund", 500)
     }
   }
 }

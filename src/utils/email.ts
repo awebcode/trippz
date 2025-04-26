@@ -1,12 +1,13 @@
+import { CancelationPolicy } from "./../../node_modules/.prisma/client/index.d";
 import { Resend } from "resend"
 import { logger } from "./logger"
 import fs from "fs"
 import path from "path"
 import Handlebars from "handlebars"
+import { config } from "../config";
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const from =
-  process.env.RESEND_FROM_EMAIL || "Trippz <onboarding@resend.dev>";
+const resend = new Resend(config.resend.apiKey)
+const from = config.resend.fromEmail || "Trippz <onboarding@resend.dev>";
 // Load email templates
 const loadTemplate = (templateName: string) => {
   try {
@@ -57,62 +58,89 @@ const compileTemplate = (templateName: string, data: any) => {
 }
 
 export class EmailService {
+  static async sendWelcomeEmail(email: string, firstName: string) {
+    try {
+      const html = compileTemplate("welcome", {
+        firstName,
+        dashboardUrl: `${process.env.FRONTEND_URL}/dashboard`,
+        appName: "Trippz",
+        supportEmail: "support@trippz.com",
+      });
+
+      const { data, error } = await resend.emails.send({
+        from,
+        to: email,
+        subject: "Welcome to Trippz!",
+        html,
+      });
+
+      if (error) {
+        logger.error(`Error sending welcome email: ${error.message}`);
+        throw new Error(`Failed to send welcome email: ${error.message}`);
+      }
+
+      return data;
+    } catch (error) {
+      logger.error(`Error in sendWelcomeEmail: ${error}`);
+      throw error;
+    }
+  }
   static async sendVerificationEmail(email: string, token: string) {
     try {
-      const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`
+      const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
 
       const html = compileTemplate("verification", {
         verificationUrl,
         appName: "Trippz",
         supportEmail: "support@trippz.com",
-      })
+      });
 
       const { data, error } = await resend.emails.send({
         from,
         to: email,
         subject: "Verify Your Email Address",
         html,
-      })
+      });
 
       if (error) {
-        logger.error(`Error sending verification email: ${error.message}`)
-        throw new Error(`Failed to send verification email: ${error.message}`)
+        logger.error(`Error sending verification email: ${error.message}`);
+        throw new Error(`Failed to send verification email: ${error.message}`);
       }
 
-      return data
+      return data;
     } catch (error) {
-      logger.error(`Error in sendVerificationEmail: ${error}`)
-      throw error
+      logger.error(`Error in sendVerificationEmail: ${error}`);
+      throw error;
     }
   }
 
   static async sendPasswordResetEmail(email: string, token: string) {
     try {
-      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`
+      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
       const html = compileTemplate("reset-password", {
         resetUrl,
         appName: "Trippz",
         supportEmail: "support@trippz.com",
         expiryTime: "1 hour",
-      })
+      });
 
       const { data, error } = await resend.emails.send({
         from,
         to: email,
         subject: "Reset Your Password",
         html,
-      })
+      });
 
       if (error) {
-        logger.error(`Error sending password reset email: ${error.message}`)
-        throw new Error(`Failed to send password reset email: ${error.message}`)
+        logger.error(`Error sending password reset email: ${error.message}`);
+        throw new Error(`Failed to send password reset email: ${error.message}`);
       }
 
-      return data
+      return data;
     } catch (error) {
-      logger.error(`Error in sendPasswordResetEmail: ${error}`)
-      throw error
+      logger.error(`Error in sendPasswordResetEmail: ${error}`);
+      throw error;
     }
   }
 
@@ -127,24 +155,57 @@ export class EmailService {
         dashboardUrl: `${process.env.FRONTEND_URL}/dashboard/bookings`,
         appName: "Trippz",
         supportEmail: "support@trippz.com",
-      })
+      });
 
       const { data, error } = await resend.emails.send({
         from,
         to: email,
         subject: "Booking Confirmation",
         html,
-      })
+      });
 
       if (error) {
-        logger.error(`Error sending booking confirmation email: ${error.message}`)
-        throw new Error(`Failed to send booking confirmation email: ${error.message}`)
+        logger.error(`Error sending booking confirmation email: ${error.message}`);
+        throw new Error(`Failed to send booking confirmation email: ${error.message}`);
       }
 
-      return data
+      return data;
     } catch (error) {
-      logger.error(`Error in sendBookingConfirmation: ${error}`)
-      throw error
+      logger.error(`Error in sendBookingConfirmation: ${error}`);
+      throw error;
+    }
+  }
+
+  //Cancelation Email
+
+  static async sendBookingCancellation(email: string, cancellationDetails: any) {
+    try {
+      const html = compileTemplate("cancellation-confirmation", {
+        bookingId: cancellationDetails.id,
+        cancellationDate: new Date().toLocaleDateString(),
+        dashboardUrl: `${process.env.FRONTEND_URL}/dashboard/bookings`,
+        appName: "Trippz",
+        supportEmail: "support@trippz.com",
+      });
+
+      const { data, error } = await resend.emails.send({
+        from,
+        to: email,
+        subject: "Cancellation Confirmation",
+        html,
+      });
+
+      if (error) {
+        logger.error(`Error sending cancellation confirmation email: ${error.message}`);
+        throw new Error(
+          `Failed to send cancellation confirmation email: ${error.message}`
+        );
+      }
+
+      return data;
+    } catch (error) {
+      logger.error(`Error in sendCancellationConfirmation: ${error}`);
+      throw error;
     }
   }
 
@@ -157,52 +218,93 @@ export class EmailService {
         dashboardUrl: `${process.env.FRONTEND_URL}/dashboard/payments`,
         appName: "Trippz",
         supportEmail: "support@trippz.com",
-      })
+      });
 
       const { data, error } = await resend.emails.send({
         from,
         to: email,
         subject: "Refund Confirmation",
         html,
-      })
+      });
 
       if (error) {
-        logger.error(`Error sending refund confirmation email: ${error.message}`)
-        throw new Error(`Failed to send refund confirmation email: ${error.message}`)
+        logger.error(`Error sending refund confirmation email: ${error.message}`);
+        throw new Error(`Failed to send refund confirmation email: ${error.message}`);
       }
 
-      return data
+      return data;
     } catch (error) {
-      logger.error(`Error in sendRefundConfirmation: ${error}`)
-      throw error
+      logger.error(`Error in sendRefundConfirmation: ${error}`);
+      throw error;
     }
   }
 
-  static async sendWelcomeEmail(email: string, firstName: string) {
+  //booking status update email
+
+  static async sendBookingStatusUpdate(email: string, bookingDetails: any) {
     try {
-      const html = compileTemplate("welcome", {
-        firstName,
-        dashboardUrl: `${process.env.FRONTEND_URL}/dashboard`,
+      const html = compileTemplate("booking-status-update", {
+        bookingId: bookingDetails.id,
+        bookingType: bookingDetails.booking_type,
+        startDate: new Date(bookingDetails.start_date).toLocaleDateString(),
+        endDate: new Date(bookingDetails.end_date).toLocaleDateString(),
+        totalPrice: bookingDetails.total_price,
+        dashboardUrl: `${process.env.FRONTEND_URL}/dashboard/bookings`,
         appName: "Trippz",
         supportEmail: "support@trippz.com",
-      })
+      });
 
       const { data, error } = await resend.emails.send({
         from,
         to: email,
-        subject: "Welcome to Trippz!",
+        subject: "Booking Status Update",
         html,
-      })
+      });
 
       if (error) {
-        logger.error(`Error sending welcome email: ${error.message}`)
-        throw new Error(`Failed to send welcome email: ${error.message}`)
+        logger.error(`Error sending booking status update email: ${error.message}`);
+        throw new Error(`Failed to send booking status update email: ${error.message}`);
       }
 
-      return data
+      return data;
     } catch (error) {
-      logger.error(`Error in sendWelcomeEmail: ${error}`)
-      throw error
+      logger.error(`Error in sendBookingStatusUpdate: ${error}`);
+      throw error;
+    }
+  }
+
+  // send Notification
+
+  static async sendNotification(email: string, notificationDetails: {
+    notification_type: string;
+    message: string;
+    title?: string;
+  }) {
+    try {
+      const html = compileTemplate("notification", {
+        notificationType: notificationDetails.notification_type,
+        notificationMessage: notificationDetails.message,
+        dashboardUrl: `${process.env.FRONTEND_URL}/dashboard`,
+        appName: "Trippz",
+        supportEmail: "support@trippz.com",
+      });
+
+      const { data, error } = await resend.emails.send({
+        from,
+        to: email,
+        subject: notificationDetails.title||"Notification",
+        html,
+      });
+
+      if (error) {
+        logger.error(`Error sending notification email: ${error.message}`);
+        throw new Error(`Failed to send notification email: ${error.message}`);
+      }
+
+      return data;
+    } catch (error) {
+      logger.error(`Error in sendNotification: ${error}`);
+      throw error;
     }
   }
 }

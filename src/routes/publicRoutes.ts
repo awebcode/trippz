@@ -1,16 +1,16 @@
-import express, { type Request, type Response } from "express";
-import { DestinationController } from "../controllers/destinationController";
-import { TravelAgencyService } from "../services/travelAgencyService";
-import { ServiceProviderService } from "../services/serviceProviderService";
-import { catchAsync } from "../utils/catchAsync";
-import { PrismaClient } from "@prisma/client";
+import express, { type Request, type Response } from "express"
+import { DestinationController } from "../controllers/destinationController"
+import { TravelAgencyService } from "../services/travelAgencyService"
+import { ServiceProviderService } from "../services/serviceProviderService"
+import { catchAsync } from "../utils/catchAsync"
+import { PrismaClient } from "@prisma/client"
 
-const prisma = new PrismaClient();
-const router = express.Router();
+const prisma = new PrismaClient()
+const router = express.Router()
 
 // Destinations
-router.get("/destinations", DestinationController.getDestinations);
-router.get("/destinations/:id", DestinationController.getDestinationById);
+router.get("/destinations", DestinationController.getDestinations)
+router.get("/destinations/:id", DestinationController.getDestinationById)
 
 // Packages
 router.get(
@@ -34,27 +34,27 @@ router.get(
           },
         },
       },
-    });
+    })
 
     res.status(200).json({
       success: true,
       data: packages,
-    });
-  })
-);
+    })
+  }),
+)
 
 router.get(
   "/packages/:id",
   catchAsync(async (req: Request, res: Response) => {
-    const packageId = req.params.id;
-    const travelPackage = await TravelAgencyService.getPackageById(packageId);
+    const packageId = req.params.id
+    const travelPackage = await TravelAgencyService.getPackageById(packageId)
 
     res.status(200).json({
       success: true,
       data: travelPackage,
-    });
-  })
-);
+    })
+  }),
+)
 
 // Services
 router.get(
@@ -71,37 +71,37 @@ router.get(
           },
         },
       },
-    });
+    })
 
     res.status(200).json({
       success: true,
       data: services,
-    });
-  })
-);
+    })
+  }),
+)
 
 router.get(
   "/services/:id",
   catchAsync(async (req: Request, res: Response) => {
-    const serviceId = req.params.id;
-    const service = await ServiceProviderService.getServiceById(serviceId);
+    const serviceId = req.params.id
+    const service = await ServiceProviderService.getServiceById(serviceId)
 
     res.status(200).json({
       success: true,
       data: service,
-    });
-  })
-);
+    })
+  }),
+)
 
 // Search
 router.get(
   "/search",
   catchAsync(async (req: Request, res: Response) => {
-    const { query, type, country, minPrice, maxPrice } = req.query;
+    const { query, type, country, minPrice, maxPrice } = req.query
 
-    let destinations: any = [];
-    let packages: any = [];
-    let services: any = [];
+    let destinations: any = []
+    let packages: any = []
+    let services: any = []
 
     if (!type || type === "destination") {
       destinations = await prisma.destination.findMany({
@@ -118,7 +118,7 @@ router.get(
         include: {
           images: true,
         },
-      });
+      })
     }
 
     if (!type || type === "package") {
@@ -155,7 +155,7 @@ router.get(
             },
           },
         },
-      });
+      })
     }
 
     if (!type || type === "service") {
@@ -179,7 +179,7 @@ router.get(
             },
           },
         },
-      });
+      })
     }
 
     res.status(200).json({
@@ -189,8 +189,8 @@ router.get(
         packages,
         services,
       },
-    });
-  })
-);
+    })
+  }),
+)
 
-export { router as publicRoutes };
+export { router as publicRoutes }

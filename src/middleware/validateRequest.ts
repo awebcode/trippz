@@ -1,95 +1,91 @@
-import type { Request, Response, NextFunction } from "express"
-import type { AnyZodObject, ZodError } from "zod"
-import { logger } from "../utils/logger"
-import { AppError } from "../utils/appError"
+import type { Request, Response, NextFunction } from "express";
+import { ZodError, type AnyZodObject, type ZodType } from "zod";
+import { logger } from "../utils/logger";
+import { AppError } from "../utils/appError";
 
-export const validateRequest = (schema: { body?: AnyZodObject; query?: AnyZodObject; params?: AnyZodObject }) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+// Extend the Request interface to include validated data
+interface ValidatedRequest<TQuery = any, TBody = any, TParams = any> extends Request {
+  validatedQuery?: TQuery;
+  validatedBody?: TBody;
+  validatedParams?: TParams;
+}
+
+export const validateRequest = <TBody, TQuery, TParams>(schema: {
+  body?: AnyZodObject | ZodType;
+  query?: AnyZodObject | ZodType;
+  params?: AnyZodObject | ZodType;
+}) => {
+  return async (
+    req: ValidatedRequest<TQuery, TBody, TParams>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
-      // Create a validation object for each part of the request
-      const toValidate: { [key: string]: any } = {}
+      const validationErrors: { path: string; message: string }[] = [];
 
-      if (schema.body) toValidate.body = req.body
-      if (schema.query) toValidate.query = req.query
-      if (schema.params) toValidate.params = req.params
-
-      // Validate each part
-      const validationPromises: Promise<any>[] = []
-      const validationErrors: { path: string; message: string }[] = []
-
+      // Validate body
       if (schema.body) {
-        validationPromises.push(
-          schema.body
-            .parseAsync(req.body)
-            .then((data) => {
-              req.body = data
-            })
-            .catch((error: ZodError) => {
-              error.errors.forEach((err) => {
-                validationErrors.push({
-                  path: `body.${err.path.join(".")}`,
-                  message: err.message,
-                })
-              })
-            }),
-        )
+        try {
+          req.body = await schema.body.parseAsync(req.body);
+        } catch (error) {
+          if (error instanceof ZodError) {
+            error.errors.forEach((err) => {
+              validationErrors.push({
+                path: `body.${err.path.join(".")}`,
+                message: err.message,
+              });
+            });
+          }
+        }
       }
 
+      // Validate query
       if (schema.query) {
-        validationPromises.push(
-          schema.query
-            .parseAsync(req.query)
-            .then((data) => {
-              req.query = data
-            })
-            .catch((error: ZodError) => {
-              error.errors.forEach((err) => {
-                validationErrors.push({
-                  path: `query.${err.path.join(".")}`,
-                  message: err.message,
-                })
-              })
-            }),
-        )
+        try {
+          const parsedQuery = await schema.query.parseAsync(req.query);
+          req.validatedQuery = parsedQuery; // Store validated query
+          req.query = parsedQuery;
+        } catch (error) {
+          if (error instanceof ZodError) {
+            error.errors.forEach((err) => {
+              validationErrors.push({
+                path: `query.${err.path.join(".")}`,
+                message: err.message,
+              });
+            });
+          }
+        }
       }
 
+      // Validate params
       if (schema.params) {
-        validationPromises.push(
-          schema.params
-            .parseAsync(req.params)
-            .then((data) => {
-              req.params = data
-            })
-            .catch((error: ZodError) => {
-              error.errors.forEach((err) => {
-                validationErrors.push({
-                  path: `params.${err.path.join(".")}`,
-                  message: err.message,
-                })
-              })
-            }),
-        )
+        try {
+          req.params = await schema.params.parseAsync(req.params);
+        } catch (error) {
+          if (error instanceof ZodError) {
+            error.errors.forEach((err) => {
+              validationErrors.push({
+                path: `params.${err.path.join(".")}`,
+                message: err.message,
+              });
+            });
+          }
+        }
       }
-
-      // Wait for all validations to complete
-      await Promise.all(validationPromises)
 
       // If there are validation errors, throw an AppError
       if (validationErrors.length > 0) {
-        logger.error(`Validation error: ${JSON.stringify(validationErrors)}`)
-        throw new AppError("Validation failed", 400, validationErrors)
+        logger.error(`Validation error: ${JSON.stringify(validationErrors)}`);
+        throw new AppError("Validation failed", 400, validationErrors);
       }
 
-      next()
+      next();
     } catch (error) {
-      // If it's already an AppError, pass it along
       if (error instanceof AppError) {
-        return next(error)
+        return next(error);
       }
-
-      // For other errors, create a generic error
-      logger.error(`Unexpected validation error: ${error}`)
-      next(new AppError("An error occurred during validation", 500))
+      logger.error(`Unexpected validation error: ${error}`);
+      next(new AppError("An error occurred during validation", 500));
     }
-  }
-}
+  };
+};

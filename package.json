@@ -5,10 +5,19 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun  --watch src/index.ts",
-    "seed": "bun run prisma/seed.ts",
-    "watch": "chokidar 'swagger.yaml' -c 'bun start'"
+    "build": "bun run prisma generate && bun run prisma migrate deploy && bun run prisma/seed.ts && tsc -p tsconfig.json",
+    "watch": "chokidar 'swagger.yaml' -c 'bun start'",
+    "prisma:generate": "bun run prisma generate",
+    "prisma:migrate": "bun run prisma migrate dev",
+    "prisma:deploy": "bun run prisma migrate deploy",
+    "prisma:seed": "bun run prisma/seed.ts",
+    "prisma:reset": "bun run prisma migrate reset",
+    "prisma:status": "bun run prisma status",
+    "prisma:studio": "bun run prisma studio",
+    "clear:db": "npx prisma db push --force-reset"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.7.0",
     "@prisma/client": "latest",
     "@types/bcrypt": "^5.0.2",
     "@types/compression": "^1.7.5",

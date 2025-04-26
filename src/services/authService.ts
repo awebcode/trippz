@@ -13,6 +13,7 @@ import {
   TokenType,
   revokeRefreshToken,
   generatePhoneVerificationCode,
+  type TokenPayload,
 } from "../utils/tokens";
 import type {
   RegisterInput,
@@ -23,9 +24,15 @@ import type {
 } from "../validators/authValidators";
 import { OAuth2Client } from "google-auth-library";
 import axios from "axios";
-
+import jwt from "jsonwebtoken";
+import type { Response } from "express";
+import { getCookieOptions } from "../middleware/authMiddleware";
+import { config } from "../config";
 // Initialize Google OAuth client
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client(
+  config.oauth.google.clientId,
+  config.oauth.google.clientSecret
+);
 
 export class AuthService {
   static async register(data: RegisterInput) {
@@ -110,8 +117,18 @@ export class AuthService {
         await SmsService.sendVerificationSms(data.phone_number, phoneVerificationCode);
       }
 
+      //new UserSession
+      const userSession = await prisma.userSession.create({
+        data: {
+          user_id: user.id,
+        },
+      });
+
       // Generate JWT tokens
-      const { accessToken, refreshToken } = await generateAuthTokens(user.id);
+      const { accessToken, refreshToken } = await generateAuthTokens(
+        user.id,
+        userSession.id
+      );
 
       return {
         user: {
@@ -159,8 +176,18 @@ export class AuthService {
         ]);
       }
 
+      //new UserSession
+      const userSession = await prisma.userSession.create({
+        data: {
+          user_id: user.id,
+        },
+      });
+
       // Generate JWT tokens
-      const { accessToken, refreshToken } = await generateAuthTokens(user.id);
+      const { accessToken, refreshToken } = await generateAuthTokens(
+        user.id,
+        userSession.id
+      );
 
       return {
         user: {
@@ -248,8 +275,18 @@ export class AuthService {
         }
       }
 
+      //new UserSession
+      const userSession = await prisma.userSession.create({
+        data: {
+          user_id: user.id,
+        },
+      });
+
       // Generate JWT tokens
-      const { accessToken, refreshToken } = await generateAuthTokens(user.id);
+      const { accessToken, refreshToken } = await generateAuthTokens(
+        user.id,
+        userSession.id
+      );
 
       return {
         user: {
@@ -271,11 +308,11 @@ export class AuthService {
     }
   }
 
-  static async facebookLogin(accessToken: string) {
+  static async facebookLogin(accesssToken: string) {
     try {
       // Verify Facebook access token
       const response = await axios.get(
-        `https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture&access_token=${accessToken}`
+        `https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture&access_token=${accesssToken}`
       );
 
       const { id, email, first_name, last_name, picture } = response.data;
@@ -337,9 +374,18 @@ export class AuthService {
         }
       }
 
-      // Generate JWT tokens
-      const { accessToken: jwt, refreshToken } = await generateAuthTokens(user.id);
+      //new UserSession
+      const userSession = await prisma.userSession.create({
+        data: {
+          user_id: user.id,
+        },
+      });
 
+      // Generate JWT tokens
+      const { accessToken, refreshToken } = await generateAuthTokens(
+        user.id,
+        userSession.id
+      );
       return {
         user: {
           id: user.id,
@@ -348,7 +394,7 @@ export class AuthService {
           email: user.email,
           role: user.role,
         },
-        accessToken: jwt,
+        accessToken,
         refreshToken,
       };
     } catch (error) {
@@ -362,9 +408,6 @@ export class AuthService {
 
   static async appleLogin(idToken: string) {
     try {
-      // In a real implementation, you would verify the Apple ID token
-      // This is a simplified version
-
       // Parse the token (in a real implementation, you would verify it with Apple)
       const payload = JSON.parse(Buffer.from(idToken.split(".")[1], "base64").toString());
 
@@ -424,8 +467,18 @@ export class AuthService {
         }
       }
 
+      //new UserSession
+      const userSession = await prisma.userSession.create({
+        data: {
+          user_id: user.id,
+        },
+      });
+
       // Generate JWT tokens
-      const { accessToken, refreshToken } = await generateAuthTokens(user.id);
+      const { accessToken, refreshToken } = await generateAuthTokens(
+        user.id,
+        userSession.id
+      );
 
       return {
         user: {
@@ -468,8 +521,28 @@ export class AuthService {
     }
   }
 
-  static async logout(userId: string) {
+  static async logout(userId: string, sessionId?: string, allDevices: boolean = false) {
     try {
+      if (allDevices) {
+        // Revoke all sessions for the user
+        await prisma.userSession.deleteMany({
+          where: { user_id: userId },
+        });
+      } else if (sessionId) {
+        // Revoke specific session
+        await prisma.userSession.delete({
+          where: { id: sessionId, user_id: userId },
+        });
+      } else {
+        // Revoke all sessions except current
+        await prisma.userSession.deleteMany({
+          where: {
+            user_id: userId,
+            id: { not: sessionId },
+          },
+        });
+      }
+
       // Revoke refresh token
       await revokeRefreshToken(userId);
 
@@ -483,6 +556,18 @@ export class AuthService {
     }
   }
 
+  static async logoutCurrentSession(userId: string, sessionId: string) {
+    return this.logout(userId, sessionId);
+  }
+
+  static async logoutOtherDevices(userId: string, currentSessionId: string) {
+    return this.logout(userId, currentSessionId);
+  }
+
+  static async logoutAllDevices(userId: string) {
+    return this.logout(userId, undefined, true);
+  }
+
   static async forgotPassword(data: ForgotPasswordInput) {
     try {
       // Find user by email
@@ -491,7 +576,6 @@ export class AuthService {
       });
 
       if (!user) {
-        // Don't reveal that the user doesn't exist for security reasons
         return {
           message:
             "If a user with that email exists, a password reset link has been sent",
@@ -533,10 +617,7 @@ export class AuthService {
   static async resetPassword(data: ResetPasswordInput) {
     try {
       // Verify reset token
-      const decoded = verifyToken<{ id: string; type: TokenType }>(
-        data.token,
-        TokenType.RESET_PASSWORD
-      );
+      const decoded = verifyToken<TokenPayload>(data.token, TokenType.RESET_PASSWORD);
 
       // Find password reset record
       const passwordReset = await prisma.passwordReset.findFirst({
@@ -739,7 +820,7 @@ export class AuthService {
         },
       });
 
-      if(!user.phone_number) {
+      if (!user.phone_number) {
         throw new AppError("Phone number not found", 404);
       }
 
@@ -758,12 +839,70 @@ export class AuthService {
     }
   }
 
-  static async generateTokensForUser(userId: string) {
+  static async generateTokensForUser(userId: string, sessionId: string) {
     try {
-      return await generateAuthTokens(userId);
+      return await generateAuthTokens(userId, sessionId);
     } catch (error) {
       logger.error(`Error generating tokens for user: ${error}`);
       throw new AppError("Failed to generate authentication tokens", 500);
+    }
+  }
+
+  static async validateSession(userId: string, sessionId: string) {
+    const session = await prisma.userSession.findUnique({
+      where: {
+        id: sessionId,
+        user_id: userId,
+        is_active: true,
+      },
+    });
+    if (!session) throw new AppError("Session is invalid or expired", 401);
+    return session;
+  }
+
+  static async generateAccessToken(user: TokenPayload) {
+    return jwt.sign(user, config.jwt.secret, {
+      expiresIn: config.jwt.accessExpiresIn as unknown as number, // Explicitly cast
+    });
+  }
+
+  static async generateRefreshToken(user: TokenPayload) {
+    return jwt.sign(user, config.jwt.refreshSecret, {
+      expiresIn: config.jwt.refreshExpiresIn as unknown as number, // Explicitly cast
+    });
+  }
+
+  static async VerifyJwtToken(token: string, secret: string) {
+    try {
+      const decoded = jwt.verify(token, secret);
+      return decoded as TokenPayload;
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new AppError("Token expired", 401);
+      }
+      throw new AppError("Invalid token", 401);
+    }
+  }
+
+  static async setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+    try {
+      res.cookie("accessToken", accessToken, getCookieOptions(15 * 60 * 1000)); // 15 minutes
+      res.cookie(
+        "refreshToken",
+        refreshToken,
+        getCookieOptions(30 * 24 * 60 * 60 * 1000)
+      ); // 30 days
+    } catch (error) {
+      throw new AppError("Failed to set auth cookies", 500);
+    }
+  }
+
+  static async clearAuthCookies(res: Response) {
+    try {
+      res.clearCookie("accessToken", getCookieOptions(0));
+      res.clearCookie("refreshToken", getCookieOptions(0));
+    } catch (error) {
+      throw new AppError("Failed to remove auth cookies", 500);
     }
   }
 }

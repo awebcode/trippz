@@ -5,7 +5,6 @@ import { AppError } from "./appError"
 import fs from "fs"
 import path from "path"
 import { logger } from "./logger"
-import type { Express } from "express"
 
 // Configure Cloudinary
 cloudinary.config({

@@ -1,23 +1,55 @@
-import express from "express"
-import { TripController } from "../controllers/tripController"
-import { protect } from "../middleware/authMiddleware"
-import { validateRequest } from "../middleware/validateRequest"
-import { createTripSchema, updateTripSchema } from "../validators/tripValidators"
+import express from "express";
+import { TripController } from "../controllers/tripController";
+import { protect } from "../middleware/authMiddleware";
+import { validateRequest } from "../middleware/validateRequest";
+import {
+  createTripSchema,
+  updateTripSchema,
+  searchTripsSchema,
+} from "../validators/tripValidators";
+import { idParamSchema } from "../validators/commonValidators";
 
-const router = express.Router()
+const router = express.Router();
 
 // Public routes
-router.get("/", TripController.getTrips)
-router.get("/search", TripController.searchTrips)
-router.get("/:id", TripController.getTripById)
+router.get("/", validateRequest({ query: searchTripsSchema }), TripController.getTrips);
+
+router.get(
+  "/search",
+  validateRequest({ query: searchTripsSchema }),
+  TripController.searchTrips
+);
+
+router.get(
+  "/:id",
+  validateRequest({ params: idParamSchema }),
+  TripController.getTripById
+);
+
+router.get(
+  "/:id/availability",
+  validateRequest({ params: idParamSchema }),
+  TripController.getTripAvailability
+);
 
 // Protected routes
-router.use(protect)
+router.use(protect);
 
-router.post("/", validateRequest({ body: createTripSchema }), TripController.createTrip)
+router.post("/", validateRequest({ body: createTripSchema }), TripController.createTrip);
 
-router.put("/:id", validateRequest({ body: updateTripSchema }), TripController.updateTrip)
+router.patch(
+  "/:id",
+  validateRequest({
+    params: idParamSchema,
+    body: updateTripSchema,
+  }),
+  TripController.updateTrip
+);
 
-router.delete("/:id", TripController.deleteTrip)
+router.delete(
+  "/:id",
+  validateRequest({ params: idParamSchema }),
+  TripController.deleteTrip
+);
 
-export { router as tripRoutes }
+export { router as tripRoutes };
