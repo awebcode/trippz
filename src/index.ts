@@ -38,10 +38,7 @@ const swaggerDocument = YAML.load(path.join(__dirname, "../swagger.yaml"))
 // Create Express app
 const app = express()
 
-// Set trust proxy for secure cookies in production
-if (process.env.NODE_ENV === "production") {
-  app.set("trust proxy", 1)
-}
+
 
 // Rate limiting middleware
 const apiLimiter = rateLimit({
