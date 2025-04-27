@@ -50,7 +50,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     if (
       req.headers.authorization &&
       req.headers.authorization.startsWith("Bearer") &&
-      req.headers.authorization.split(" ")[1]
+      req.headers.authorization.split(" ")[1].includes("ey")
     ) {
       accessToken = req.headers.authorization.split(" ")[1];
     }
