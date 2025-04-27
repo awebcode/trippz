@@ -1,0 +1,243 @@
+import { z } from "zod";
+export declare const createHotelSchema: z.ZodObject<{
+    name: z.ZodString;
+    address: z.ZodString;
+    rating: z.ZodOptional<z.ZodNumber>;
+    price_per_night: z.ZodNumber;
+    amenities: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    available_rooms: z.ZodOptional<z.ZodNumber>;
+    description: z.ZodOptional<z.ZodString>;
+    check_in_time: z.ZodOptional<z.ZodString>;
+    check_out_time: z.ZodOptional<z.ZodString>;
+    location: z.ZodOptional<z.ZodObject<{
+        latitude: z.ZodOptional<z.ZodNumber>;
+        longitude: z.ZodOptional<z.ZodNumber>;
+        city: z.ZodOptional<z.ZodString>;
+        country: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        city?: string | undefined;
+        country?: string | undefined;
+        latitude?: number | undefined;
+        longitude?: number | undefined;
+    }, {
+        city?: string | undefined;
+        country?: string | undefined;
+        latitude?: number | undefined;
+        longitude?: number | undefined;
+    }>>;
+    cancellation_policy: z.ZodOptional<z.ZodString>;
+    images: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+}, "strip", z.ZodTypeAny, {
+    name: string;
+    address: string;
+    price_per_night: number;
+    images?: string[] | undefined;
+    rating?: number | undefined;
+    amenities?: string[] | undefined;
+    available_rooms?: number | undefined;
+    description?: string | undefined;
+    check_in_time?: string | undefined;
+    check_out_time?: string | undefined;
+    location?: {
+        city?: string | undefined;
+        country?: string | undefined;
+        latitude?: number | undefined;
+        longitude?: number | undefined;
+    } | undefined;
+    cancellation_policy?: string | undefined;
+}, {
+    name: string;
+    address: string;
+    price_per_night: number;
+    images?: string[] | undefined;
+    rating?: number | undefined;
+    amenities?: string[] | undefined;
+    available_rooms?: number | undefined;
+    description?: string | undefined;
+    check_in_time?: string | undefined;
+    check_out_time?: string | undefined;
+    location?: {
+        city?: string | undefined;
+        country?: string | undefined;
+        latitude?: number | undefined;
+        longitude?: number | undefined;
+    } | undefined;
+    cancellation_policy?: string | undefined;
+}>;
+export declare const updateHotelSchema: z.ZodObject<{
+    name: z.ZodOptional<z.ZodString>;
+    address: z.ZodOptional<z.ZodString>;
+    rating: z.ZodOptional<z.ZodNumber>;
+    price_per_night: z.ZodOptional<z.ZodNumber>;
+    amenities: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    available_rooms: z.ZodOptional<z.ZodNumber>;
+    description: z.ZodOptional<z.ZodString>;
+    check_in_time: z.ZodOptional<z.ZodString>;
+    check_out_time: z.ZodOptional<z.ZodString>;
+    location: z.ZodOptional<z.ZodObject<{
+        latitude: z.ZodOptional<z.ZodNumber>;
+        longitude: z.ZodOptional<z.ZodNumber>;
+        city: z.ZodOptional<z.ZodString>;
+        country: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        city?: string | undefined;
+        country?: string | undefined;
+        latitude?: number | undefined;
+        longitude?: number | undefined;
+    }, {
+        city?: string | undefined;
+        country?: string | undefined;
+        latitude?: number | undefined;
+        longitude?: number | undefined;
+    }>>;
+    cancellation_policy: z.ZodOptional<z.ZodString>;
+    images: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+}, "strip", z.ZodTypeAny, {
+    name?: string | undefined;
+    address?: string | undefined;
+    images?: string[] | undefined;
+    rating?: number | undefined;
+    price_per_night?: number | undefined;
+    amenities?: string[] | undefined;
+    available_rooms?: number | undefined;
+    description?: string | undefined;
+    check_in_time?: string | undefined;
+    check_out_time?: string | undefined;
+    location?: {
+        city?: string | undefined;
+        country?: string | undefined;
+        latitude?: number | undefined;
+        longitude?: number | undefined;
+    } | undefined;
+    cancellation_policy?: string | undefined;
+}, {
+    name?: string | undefined;
+    address?: string | undefined;
+    images?: string[] | undefined;
+    rating?: number | undefined;
+    price_per_night?: number | undefined;
+    amenities?: string[] | undefined;
+    available_rooms?: number | undefined;
+    description?: string | undefined;
+    check_in_time?: string | undefined;
+    check_out_time?: string | undefined;
+    location?: {
+        city?: string | undefined;
+        country?: string | undefined;
+        latitude?: number | undefined;
+        longitude?: number | undefined;
+    } | undefined;
+    cancellation_policy?: string | undefined;
+}>;
+export declare const searchHotelsSchema: z.ZodObject<{
+    page: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+    limit: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+    sortBy: z.ZodDefault<z.ZodOptional<z.ZodEnum<["created_at", "price_per_night", "rating", "name"]>>>;
+    sortOrder: z.ZodDefault<z.ZodOptional<z.ZodEnum<["asc", "desc"]>>>;
+    location: z.ZodOptional<z.ZodString>;
+    city: z.ZodOptional<z.ZodString>;
+    country: z.ZodOptional<z.ZodString>;
+    check_in: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
+    check_out: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
+    guests: z.ZodOptional<z.ZodNumber>;
+    rooms: z.ZodOptional<z.ZodNumber>;
+    minPrice: z.ZodOptional<z.ZodNumber>;
+    maxPrice: z.ZodOptional<z.ZodNumber>;
+    rating: z.ZodOptional<z.ZodNumber>;
+    amenities: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    distance_from_center: z.ZodOptional<z.ZodNumber>;
+    has_free_cancellation: z.ZodOptional<z.ZodBoolean>;
+    has_breakfast_included: z.ZodOptional<z.ZodBoolean>;
+    has_parking: z.ZodOptional<z.ZodBoolean>;
+    has_pool: z.ZodOptional<z.ZodBoolean>;
+    has_gym: z.ZodOptional<z.ZodBoolean>;
+    has_restaurant: z.ZodOptional<z.ZodBoolean>;
+    has_room_service: z.ZodOptional<z.ZodBoolean>;
+    has_spa: z.ZodOptional<z.ZodBoolean>;
+    has_wifi: z.ZodOptional<z.ZodBoolean>;
+    has_air_conditioning: z.ZodOptional<z.ZodBoolean>;
+    is_pet_friendly: z.ZodOptional<z.ZodBoolean>;
+    is_family_friendly: z.ZodOptional<z.ZodBoolean>;
+}, "strip", z.ZodTypeAny, {
+    limit: number;
+    page: number;
+    sortBy: "created_at" | "name" | "rating" | "price_per_night";
+    sortOrder: "asc" | "desc";
+    city?: string | undefined;
+    country?: string | undefined;
+    rating?: number | undefined;
+    amenities?: string[] | undefined;
+    location?: string | undefined;
+    check_in?: string | undefined;
+    check_out?: string | undefined;
+    guests?: number | undefined;
+    rooms?: number | undefined;
+    minPrice?: number | undefined;
+    maxPrice?: number | undefined;
+    distance_from_center?: number | undefined;
+    has_free_cancellation?: boolean | undefined;
+    has_breakfast_included?: boolean | undefined;
+    has_parking?: boolean | undefined;
+    has_pool?: boolean | undefined;
+    has_gym?: boolean | undefined;
+    has_restaurant?: boolean | undefined;
+    has_room_service?: boolean | undefined;
+    has_spa?: boolean | undefined;
+    has_wifi?: boolean | undefined;
+    has_air_conditioning?: boolean | undefined;
+    is_pet_friendly?: boolean | undefined;
+    is_family_friendly?: boolean | undefined;
+}, {
+    limit?: number | undefined;
+    city?: string | undefined;
+    country?: string | undefined;
+    rating?: number | undefined;
+    amenities?: string[] | undefined;
+    location?: string | undefined;
+    page?: number | undefined;
+    sortBy?: "created_at" | "name" | "rating" | "price_per_night" | undefined;
+    sortOrder?: "asc" | "desc" | undefined;
+    check_in?: string | undefined;
+    check_out?: string | undefined;
+    guests?: number | undefined;
+    rooms?: number | undefined;
+    minPrice?: number | undefined;
+    maxPrice?: number | undefined;
+    distance_from_center?: number | undefined;
+    has_free_cancellation?: boolean | undefined;
+    has_breakfast_included?: boolean | undefined;
+    has_parking?: boolean | undefined;
+    has_pool?: boolean | undefined;
+    has_gym?: boolean | undefined;
+    has_restaurant?: boolean | undefined;
+    has_room_service?: boolean | undefined;
+    has_spa?: boolean | undefined;
+    has_wifi?: boolean | undefined;
+    has_air_conditioning?: boolean | undefined;
+    is_pet_friendly?: boolean | undefined;
+    is_family_friendly?: boolean | undefined;
+}>;
+export declare const hotelAvailabilitySchema: z.ZodObject<{
+    hotel_id: z.ZodString;
+    check_in: z.ZodEffects<z.ZodString, string, string>;
+    check_out: z.ZodEffects<z.ZodString, string, string>;
+    guests: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+    rooms: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+}, "strip", z.ZodTypeAny, {
+    check_in: string;
+    check_out: string;
+    guests: number;
+    rooms: number;
+    hotel_id: string;
+}, {
+    check_in: string;
+    check_out: string;
+    hotel_id: string;
+    guests?: number | undefined;
+    rooms?: number | undefined;
+}>;
+export type CreateHotelInput = z.infer<typeof createHotelSchema>;
+export type UpdateHotelInput = z.infer<typeof updateHotelSchema>;
+export type SearchHotelsInput = z.infer<typeof searchHotelsSchema>;
+export type HotelAvailabilityInput = z.infer<typeof hotelAvailabilitySchema>;
+//# sourceMappingURL=hotelValidators.d.ts.map

@@ -55,14 +55,13 @@ model User {
 }
 
 model UserSession {
-  id            String    @id @default(uuid()) @db.Uuid
-  ip_address    String? // Optional field
-  user_agent    String? // Optional field
-  is_active     Boolean   @default(true)
-  user_id       String    @db.Uuid
-  user          User      @relation(fields: [user_id], references: [id])
+  id         String   @id @default(uuid()) @db.Uuid
+  ip_address String? // Optional field
+  user_agent String? // Optional field
+  is_active  Boolean  @default(true)
   last_activity DateTime?
-
+  user_id    String   @db.Uuid
+  user       User     @relation(fields: [user_id], references: [id])
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
@@ -142,55 +141,110 @@ model Profile {
 }
 
 model Hotel {
-  id              String     @id @default(uuid()) @db.Uuid
-  name            String
-  address         String
-  rating          Float
-  price_per_night Float
-  amenities       String[]
-  available_rooms Int
-  images          Image[]
-  created_at      DateTime   @default(now())
-  updated_at      DateTime   @updatedAt
-  bookings        Booking[]
-  reviews         Review[]
-  Favorite        Favorite[]
+  id                    String     @id @default(uuid()) @db.Uuid
+  name                  String
+  address               String
+  rating                Float
+  price_per_night       Float
+  amenities             String[]
+  available_rooms       Int
+  images                Image[]
+  created_at            DateTime   @default(now())
+  updated_at            DateTime   @updatedAt
+  bookings              Booking[]
+  reviews               Review[]
+  Favorite              Favorite[]
+  description           String?
+  check_in_time         String?
+  check_out_time        String?
+  location              Json?      // Stores latitude, longitude, city, country
+  cancellation_policy   String?
+  property_type         String?    // e.g., Hotel, Resort, Apartment, Villa
+  star_rating           Int?       // Official star rating (1-5)
+  has_free_cancellation Boolean?   @default(false)
+  has_breakfast_included Boolean?   @default(false)
+  has_parking           Boolean?   @default(false)
+  has_pool              Boolean?   @default(false)
+  has_gym               Boolean?   @default(false)
+  has_restaurant        Boolean?   @default(false)
+  has_room_service      Boolean?   @default(false)
+  has_spa               Boolean?   @default(false)
+  has_wifi              Boolean?   @default(false)
+  has_air_conditioning  Boolean?   @default(false)
+  is_pet_friendly       Boolean?   @default(false)
+  is_family_friendly    Boolean?   @default(false)
+  distance_from_center  Float?     // Distance from city center in km
 }
 
 model Flight {
-  id             String     @id @default(uuid()) @db.Uuid
-  flight_number  String
-  airline        String
-  departure_time DateTime
-  arrival_time   DateTime
-  from_airport   String
-  to_airport     String
-  price          Float
-  seat_class     String
-  images         Image[]
-  created_at     DateTime   @default(now())
-  updated_at     DateTime   @updatedAt
-  bookings       Booking[]
-  reviews        Review[]
-  Favorite       Favorite[]
+  id                String     @id @default(uuid()) @db.Uuid
+  flight_number     String
+  airline           String
+  departure_time    DateTime
+  arrival_time      DateTime
+  from_airport      String
+  to_airport        String
+  price             Float
+  seat_class        String
+  images            Image[]
+  created_at        DateTime   @default(now())
+  updated_at        DateTime   @updatedAt
+  bookings          Booking[]
+  reviews           Review[]
+  Favorite          Favorite[]
+  available_seats   Int?       // Number of available seats
+  aircraft_type     String?    // e.g., Boeing 737, Airbus A320
+  has_wifi          Boolean?   @default(false)
+  has_entertainment Boolean?   @default(false)
+  has_power_outlets Boolean?   @default(false)
+  meal_service      Boolean?   @default(false)
+  baggage_allowance Int?       // Number of bags allowed
+  cancellation_policy String?  // Cancellation policy details
 }
 
 model Trip {
-  id          String     @id @default(uuid()) @db.Uuid
-  user_id     String     @db.Uuid
-  user        User       @relation(fields: [user_id], references: [id])
-  trip_name   String
-  description String
-  start_date  DateTime
-  end_date    DateTime
-  trip_type   TripType
-  price       Float
-  created_at  DateTime   @default(now())
-  updated_at  DateTime   @updatedAt
-  images      Image[]
-  reviews     Review[]
-  bookings    Booking[]
-  favorites   Favorite[]
+  id                 String           @id @default(uuid()) @db.Uuid
+  user_id            String           @db.Uuid
+  user               User             @relation(fields: [user_id], references: [id])
+  trip_name          String
+  description        String
+  start_date         DateTime
+  end_date           DateTime
+  trip_type          TripType
+  price              Float
+  created_at         DateTime         @default(now())
+  updated_at         DateTime         @updatedAt
+  images             Image[]
+  reviews            Review[]
+  bookings           Booking[]
+  favorites          Favorite[]
+  max_participants   Int?             // Maximum number of participants
+  itinerary          Json?            // Detailed day-by-day itinerary
+  inclusions         String[]         // What's included in the trip
+  exclusions         String[]         // What's not included in the trip
+  cancellation_policy String?         // Cancellation policy details
+  tripDestinations   TripDestination[]
+  difficulty_level   String?          // e.g., Easy, Moderate, Challenging
+  is_guided          Boolean?         @default(false)
+  is_family_friendly Boolean?         @default(false)
+  is_accessible      Boolean?         @default(false)
+  includes_flight    Boolean?         @default(false)
+  includes_hotel     Boolean?         @default(false)
+  includes_activities Boolean?        @default(false)
+  includes_meals     Boolean?         @default(false)
+  travel_style       String?          // e.g., Adventure, Luxury, Budget
+  theme              String?          // e.g., Cultural, Nature, Wellness
+}
+
+model TripDestination {
+  id             String      @id @default(uuid()) @db.Uuid
+  trip_id        String      @db.Uuid
+  trip           Trip        @relation(fields: [trip_id], references: [id], onDelete: Cascade)
+  destination_id String      @db.Uuid
+  destination    Destination @relation(fields: [destination_id], references: [id])
+  created_at     DateTime    @default(now())
+
+  @@unique([trip_id, destination_id])
 }
 
 enum TripType {
@@ -348,6 +402,7 @@ model Image {
   package        TravelPackage? @relation(fields: [package_id], references: [id])
   destination_id String?        @db.Uuid
   destination    Destination?   @relation(fields: [destination_id], references: [id])
+  position       Int?           @default(0) // For ordering images
 }
 
 model SearchHistory {
@@ -670,8 +725,10 @@ model Destination {
   travel_tips        String[]
   images             Image[]
   packages           TravelPackage[]
-  created_at         DateTime        @default(now())
-  updated_at         DateTime        @updatedAt
+  trips              TripDestination[]
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
+  image_url          String?           // Main image URL for the destination
 }
 
 enum OrderStatus {
@@ -695,3 +752,4 @@ model SystemSetting {
   created_at             DateTime @default(now())
   updated_at             DateTime @updatedAt
 }
+

@@ -1,8 +1,13 @@
-import { prisma } from "../lib/prisma"
-import { AppError } from "../utils/appError"
-import { logger } from "../utils/logger"
-import type { CreateTripInput, UpdateTripInput, SearchTripsInput } from "../validators/tripValidators"
-import type { PaginatedResult } from "../validators/commonValidators"
+import { prisma } from "../lib/prisma";
+import { AppError } from "../utils/appError";
+import { logger } from "../utils/logger";
+import type {
+  CreateTripInput,
+  UpdateTripInput,
+  SearchTripsInput,
+  TripAvailabilityInput,
+} from "../validators/tripValidators";
+import type { PaginatedResult } from "../validators/commonValidators";
 
 export class TripService {
   static async createTrip(userId: string, data: CreateTripInput) {
@@ -16,16 +21,33 @@ export class TripService {
           end_date: new Date(data.end_date),
           trip_type: data.trip_type,
           price: data.price,
+          max_participants: data.max_participants,
+          itinerary: data.itinerary as any,
+          inclusions: data.inclusions,
+          exclusions: data.exclusions,
+          cancellation_policy: data.cancellation_policy,
         },
-      })
+      });
 
-      return trip
-    } catch (error) {
-      logger.error(`Error in createTrip: ${error}`)
-      if (error instanceof AppError) {
-        throw error
+      // Connect destinations if provided
+      if (data.destination_ids && data.destination_ids.length > 0) {
+        for (const destinationId of data.destination_ids) {
+          await prisma.tripDestination.create({
+            data: {
+              trip_id: trip.id,
+              destination_id: destinationId,
+            },
+          });
+        }
       }
-      throw new AppError("Failed to create trip", 500)
+
+      return trip;
+    } catch (error) {
+      logger.error(`Error in createTrip: ${error}`);
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError("Failed to create trip", 500);
     }
   }
 
@@ -37,49 +59,151 @@ export class TripService {
         sortBy = "created_at",
         sortOrder = "desc",
         trip_type,
+        destination,
         start_date,
         end_date,
         minPrice,
         maxPrice,
-      } = params
+        duration_min,
+        duration_max,
+        min_rating,
+        max_participants,
+        has_availability,
+        includes_flight,
+        includes_hotel,
+        includes_activities,
+        includes_meals,
+        is_guided,
+        is_family_friendly,
+        is_accessible,
+        has_free_cancellation,
+      } = params;
 
       // Calculate pagination values
-      const skip = (page - 1) * limit
+      const skip = (page - 1) * limit;
 
       // Build where conditions
-      const where: any = {}
+      const where: any = {};
 
       if (trip_type) {
-        where.trip_type = trip_type
+        where.trip_type = trip_type;
+      }
+
+      if (destination) {
+        where.OR = [
+          {
+            description: {
+              contains: destination,
+              mode: "insensitive",
+            },
+          },
+          {
+            trip_name: {
+              contains: destination,
+              mode: "insensitive",
+            },
+          },
+          {
+            tripDestinations: {
+              some: {
+                destination: {
+                  name: {
+                    contains: destination,
+                    mode: "insensitive",
+                  },
+                },
+              },
+            },
+          },
+        ];
       }
 
       if (start_date) {
         where.start_date = {
           gte: new Date(start_date),
-        }
+        };
       }
 
       if (end_date) {
         where.end_date = {
           lte: new Date(end_date),
-        }
+        };
       }
 
       if (minPrice !== undefined || maxPrice !== undefined) {
-        where.price = {}
+        where.price = {};
         if (minPrice !== undefined) {
-          where.price.gte = minPrice
+          where.price.gte = minPrice;
         }
         if (maxPrice !== undefined) {
-          where.price.lte = maxPrice
+          where.price.lte = maxPrice;
         }
       }
 
+      if (max_participants !== undefined) {
+        where.max_participants = {
+          gte: max_participants,
+        };
+      }
+
+      // Advanced filters
+      const inclusionFilters = [];
+
+      if (includes_flight === true) {
+        inclusionFilters.push("flight");
+      }
+
+      if (includes_hotel === true) {
+        inclusionFilters.push("hotel");
+      }
+
+      if (includes_activities === true) {
+        inclusionFilters.push("activities");
+      }
+
+      if (includes_meals === true) {
+        inclusionFilters.push("meals");
+      }
+
+      if (inclusionFilters.length > 0) {
+        where.inclusions = {
+          hasSome: inclusionFilters,
+        };
+      }
+
+      if (is_guided === true) {
+        where.inclusions = {
+          ...where.inclusions,
+          hasSome: [...(where.inclusions?.hasSome || []), "guided tour"],
+        };
+      }
+
+      if (is_family_friendly === true) {
+        where.inclusions = {
+          ...where.inclusions,
+          hasSome: [...(where.inclusions?.hasSome || []), "family friendly"],
+        };
+      }
+
+      if (is_accessible === true) {
+        where.inclusions = {
+          ...where.inclusions,
+          hasSome: [...(where.inclusions?.hasSome || []), "accessible"],
+        };
+      }
+
+      if (has_free_cancellation === true) {
+        where.cancellation_policy = {
+          contains: "free",
+          mode: "insensitive",
+        };
+      }
+
       // Get total count (without filters)
-      const totalCount = await prisma.trip.count()
+      const totalCount = await prisma.trip.count();
 
       // Get filtered count
-      const filteredCount = await prisma.trip.count({ where })
+      const filteredCount = await prisma.trip.count({ where });
 
       // Get paginated data
       const trips = await prisma.trip.findMany({
@@ -100,6 +224,18 @@ export class TripService {
               rating: true,
             },
           },
+          tripDestinations: {
+            include: {
+              destination: {
+                select: {
+                  id: true,
+                  name: true,
+                  country: true,
+                  image_url: true,
+                },
+              },
+            },
+          },
           _count: {
             select: {
               bookings: true,
@@ -112,18 +248,22 @@ export class TripService {
         },
         skip,
         take: limit,
-      })
+      });
 
       // Process trips to include average rating and duration
-      const processedTrips = trips.map((trip) => {
+      let processedTrips = trips.map((trip) => {
         const avgRating =
           trip.reviews.length > 0
-            ? trip.reviews.reduce((sum, review) => sum + review.rating, 0) / trip.reviews.length
-            : 0
+            ? trip.reviews.reduce((sum, review) => sum + review.rating, 0) /
+              trip.reviews.length
+            : 0;
 
         // Calculate trip duration in days
-        const durationMs = trip.end_date.getTime() - trip.start_date.getTime()
-        const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24))
+        const durationMs = trip.end_date.getTime() - trip.start_date.getTime();
+        const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24));
+
+        // Format destinations
+        const destinations = trip.tripDestinations.map((td) => td.destination);
 
         return {
           ...trip,
@@ -131,32 +271,60 @@ export class TripService {
           review_count: trip._count.reviews,
           booking_count: trip._count.bookings,
           duration_days: durationDays,
+          destinations: destinations,
+          tripDestinations: undefined, // Remove raw tripDestinations
           reviews: undefined, // Remove raw reviews
           _count: undefined, // Remove count
-        }
-      })
+        };
+      });
+
+      // Apply post-fetch filters
+      if (min_rating !== undefined) {
+        processedTrips = processedTrips.filter((trip) => trip.avg_rating >= min_rating);
+      }
+
+      if (duration_min !== undefined || duration_max !== undefined) {
+        processedTrips = processedTrips.filter((trip) => {
+          if (duration_min !== undefined && trip.duration_days < duration_min) {
+            return false;
+          }
+          if (duration_max !== undefined && trip.duration_days > duration_max) {
+            return false;
+          }
+          return true;
+        });
+      }
+
+      if (has_availability === true) {
+        // This would typically involve checking bookings vs max_participants
+        // For now, we'll assume trips with fewer bookings than max_participants are available
+        processedTrips = processedTrips.filter((trip) => {
+          const maxParticipants = trip.max_participants || 20; // Default to 20 if not specified
+          return trip.booking_count < maxParticipants;
+        });
+      }
 
       // Calculate total pages
-      const totalPages = Math.ceil(filteredCount / limit)
+      const totalPages = Math.ceil(filteredCount / limit);
 
       return {
         data: processedTrips,
         metadata: {
           totalCount,
-          filteredCount,
+          filteredCount: processedTrips.length,
           totalPages,
           currentPage: page,
           limit,
           hasNextPage: page < totalPages,
           hasPreviousPage: page > 1,
         },
-      }
+      };
     } catch (error) {
-      logger.error(`Error in getTrips: ${error}`)
+      logger.error(`Error in getTrips: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to get trips", 500)
+      throw new AppError("Failed to get trips", 500);
     }
   }
 
@@ -197,26 +365,45 @@ export class TripService {
               end_date: true,
             },
           },
+          tripDestinations: {
+            include: {
+              destination: {
+                select: {
+                  id: true,
+                  name: true,
+                  country: true,
+                  image_url: true,
+                  description: true,
+                },
+              },
+            },
+          },
         },
-      })
+      });
 
       if (!trip) {
-        throw new AppError("Trip not found", 404)
+        throw new AppError("Trip not found", 404);
       }
 
       // Calculate average rating
       const avgRating =
-        trip.reviews.length > 0 ? trip.reviews.reduce((sum, review) => sum + review.rating, 0) / trip.reviews.length : 0
+        trip.reviews.length > 0
+          ? trip.reviews.reduce((sum, review) => sum + review.rating, 0) /
+            trip.reviews.length
+          : 0;
 
       // Calculate trip duration in days
-      const durationMs = trip.end_date.getTime() - trip.start_date.getTime()
-      const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24))
+      const durationMs = trip.end_date.getTime() - trip.start_date.getTime();
+      const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24));
 
       // Get booked dates
       const bookedDates = trip.bookings.map((booking) => ({
         start: booking.start_date,
         end: booking.end_date,
-      }))
+      }));
+
+      // Format destinations
+      const destinations = trip.tripDestinations.map((td) => td.destination);
 
       return {
         ...trip,
@@ -224,14 +411,16 @@ export class TripService {
         review_count: trip.reviews.length,
         duration_days: durationDays,
         booked_dates: bookedDates,
+        destinations: destinations,
+        tripDestinations: undefined, // Remove raw tripDestinations
         bookings: undefined, // Remove raw bookings
-      }
+      };
     } catch (error) {
-      logger.error(`Error in getTripById: ${error}`)
+      logger.error(`Error in getTripById: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to get trip", 500)
+      throw new AppError("Failed to get trip", 500);
     }
   }
 
@@ -239,14 +428,14 @@ export class TripService {
     try {
       const trip = await prisma.trip.findUnique({
         where: { id },
-      })
+      });
 
       if (!trip) {
-        throw new AppError("Trip not found", 404)
+        throw new AppError("Trip not found", 404);
       }
 
       if (trip.user_id !== userId) {
-        throw new AppError("You are not authorized to update this trip", 403)
+        throw new AppError("You are not authorized to update this trip", 403);
       }
 
       const updatedTrip = await prisma.trip.update({
@@ -258,16 +447,39 @@ export class TripService {
           end_date: data.end_date ? new Date(data.end_date) : undefined,
           trip_type: data.trip_type,
           price: data.price,
+          max_participants: data.max_participants,
+          itinerary: data.itinerary,
+          inclusions: data.inclusions,
+          exclusions: data.exclusions,
+          cancellation_policy: data.cancellation_policy,
         },
-      })
+      });
 
-      return updatedTrip
-    } catch (error) {
-      logger.error(`Error in updateTrip: ${error}`)
-      if (error instanceof AppError) {
-        throw error
+      // Update destinations if provided
+      if (data.destination_ids && data.destination_ids.length > 0) {
+        // Remove existing destinations
+        await prisma.tripDestination.deleteMany({
+          where: { trip_id: id },
+        });
+
+        // Add new destinations
+        for (const destinationId of data.destination_ids) {
+          await prisma.tripDestination.create({
+            data: {
+              trip_id: id,
+              destination_id: destinationId,
+            },
+          });
+        }
       }
-      throw new AppError("Failed to update trip", 500)
+
+      return updatedTrip;
+    } catch (error) {
+      logger.error(`Error in updateTrip: ${error}`);
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError("Failed to update trip", 500);
     }
   }
 
@@ -275,14 +487,14 @@ export class TripService {
     try {
       const trip = await prisma.trip.findUnique({
         where: { id },
-      })
+      });
 
       if (!trip) {
-        throw new AppError("Trip not found", 404)
+        throw new AppError("Trip not found", 404);
       }
 
       if (trip.user_id !== userId) {
-        throw new AppError("You are not authorized to delete this trip", 403)
+        throw new AppError("You are not authorized to delete this trip", 403);
       }
 
       // Check if trip has active bookings
@@ -293,53 +505,60 @@ export class TripService {
             in: ["CONFIRMED", "PENDING"],
           },
         },
-      })
+      });
 
       if (activeBookings > 0) {
-        throw new AppError("Cannot delete trip with active bookings", 400)
+        throw new AppError("Cannot delete trip with active bookings", 400);
       }
+
+      // Delete trip destinations
+      await prisma.tripDestination.deleteMany({
+        where: { trip_id: id },
+      });
 
       // Delete trip images
       await prisma.image.deleteMany({
         where: { trip_id: id },
-      })
+      });
 
       // Delete trip reviews
       await prisma.review.deleteMany({
         where: { trip_id: id },
-      })
+      });
 
       // Delete trip
       await prisma.trip.delete({
         where: { id },
-      })
+      });
 
-      return { message: "Trip deleted successfully" }
+      return { message: "Trip deleted successfully" };
     } catch (error) {
-      logger.error(`Error in deleteTrip: ${error}`)
+      logger.error(`Error in deleteTrip: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to delete trip", 500)
+      throw new AppError("Failed to delete trip", 500);
     }
   }
 
   static async searchTrips(params: SearchTripsInput): Promise<PaginatedResult<any>> {
     try {
-      return this.getTrips(params)
+      return this.getTrips(params);
     } catch (error) {
-      logger.error(`Error in searchTrips: ${error}`)
+      logger.error(`Error in searchTrips: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to search trips", 500)
+      throw new AppError("Failed to search trips", 500);
     }
   }
 
-  static async getTripAvailability(id: string, startDate: string, endDate: string) {
+  static async getTripAvailability(params: TripAvailabilityInput) {
     try {
+      const { trip_id, start_date, end_date, participants = 1 } = params;
+
       const trip = await prisma.trip.findUnique({
-        where: { id },
+        where: { id: trip_id },
         include: {
           bookings: {
             where: {
@@ -350,15 +569,15 @@ export class TripService {
                 {
                   // Booking starts during requested period
                   start_date: {
-                    gte: new Date(startDate),
-                    lt: new Date(endDate),
+                    gte: new Date(start_date),
+                    lt: new Date(end_date),
                   },
                 },
                 {
                   // Booking ends during requested period
                   end_date: {
-                    gt: new Date(startDate),
-                    lte: new Date(endDate),
+                    gt: new Date(start_date),
+                    lte: new Date(end_date),
                   },
                 },
                 {
@@ -366,12 +585,12 @@ export class TripService {
                   AND: [
                     {
                       start_date: {
-                        lte: new Date(startDate),
+                        lte: new Date(start_date),
                       },
                     },
                     {
                       end_date: {
-                        gte: new Date(endDate),
+                        gte: new Date(end_date),
                       },
                     },
                   ],
@@ -380,16 +599,17 @@ export class TripService {
             },
           },
         },
-      })
+      });
 
       if (!trip) {
-        throw new AppError("Trip not found", 404)
+        throw new AppError("Trip not found", 404);
       }
 
-      // Assuming a default capacity of 20 participants per trip
-      const maxParticipants = 20
-      const bookedParticipants = trip.bookings.length
-      const availableSpots = Math.max(0, maxParticipants - bookedParticipants)
+      // Calculate available spots
+      const maxParticipants = trip.max_participants || 20; // Default to 20 if not specified
+      const bookedParticipants = trip.bookings.length;
+      const availableSpots = Math.max(0, maxParticipants - bookedParticipants);
+      const canAccommodate = availableSpots >= participants;
 
       return {
         trip_id: trip.id,
@@ -398,18 +618,286 @@ export class TripService {
         max_participants: maxParticipants,
         booked_participants: bookedParticipants,
         available_spots: availableSpots,
-        is_available: availableSpots > 0,
+        requested_participants: participants,
+        is_available: canAccommodate,
         requested_period: {
-          start_date: startDate,
-          end_date: endDate,
+          start_date: start_date,
+          end_date: end_date,
         },
-      }
+      };
     } catch (error) {
-      logger.error(`Error in getTripAvailability: ${error}`)
+      logger.error(`Error in getTripAvailability: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to check trip availability", 500)
+      throw new AppError("Failed to check trip availability", 500);
+    }
+  }
+
+  // Custom query method for advanced trip searches
+  static async customTripQuery(params: any): Promise<PaginatedResult<any>> {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        sortBy = "created_at",
+        sortOrder = "desc",
+        // Custom query parameters
+        destinations,
+        activities,
+        themes,
+        travel_styles,
+        group_size,
+        price_range,
+        duration_range,
+        departure_months,
+        difficulty_level,
+        ...rest
+      } = params;
+
+      // Calculate pagination values
+      const skip = (page - 1) * limit;
+
+      // Build advanced where conditions
+      const where: any = {};
+
+      // Reuse basic filters from getTrips
+      if (rest.trip_type) {
+        where.trip_type = rest.trip_type;
+      }
+
+      // Add destinations filter
+      if (destinations && destinations.length > 0) {
+        where.tripDestinations = {
+          some: {
+            destination: {
+              name: {
+                in: destinations,
+              },
+            },
+          },
+        };
+      }
+
+      // Add activities filter (assuming activities are stored in inclusions)
+      if (activities && activities.length > 0) {
+        where.inclusions = {
+          hasSome: activities,
+        };
+      }
+
+      // Add themes filter (assuming themes are stored in trip_name or description)
+      if (themes && themes.length > 0) {
+        where.OR = where.OR || [];
+
+        for (const theme of themes) {
+          where.OR.push({
+            trip_name: {
+              contains: theme,
+              mode: "insensitive",
+            },
+          });
+
+          where.OR.push({
+            description: {
+              contains: theme,
+              mode: "insensitive",
+            },
+          });
+        }
+      }
+
+      // Add travel styles filter (assuming stored in trip_type or description)
+      if (travel_styles && travel_styles.length > 0) {
+        where.OR = where.OR || [];
+
+        for (const style of travel_styles) {
+          where.OR.push({
+            trip_type: style,
+          });
+
+          where.OR.push({
+            description: {
+              contains: style,
+              mode: "insensitive",
+            },
+          });
+        }
+      }
+
+      // Add group size filter
+      if (group_size) {
+        where.max_participants = {
+          lte: group_size,
+        };
+      }
+
+      // Add price range filter
+      if (price_range) {
+        const [min, max] = price_range.split("-").map(Number);
+        where.price = {
+          gte: min,
+          lte: max,
+        };
+      }
+
+      // Add duration range filter (will be applied post-fetch)
+      if (duration_range) {
+        // This will be applied after fetching the data
+        logger.info(`Filtering for duration range: ${duration_range}`);
+      }
+
+      // Add departure months filter
+      if (departure_months && departure_months.length > 0) {
+        where.OR = where.OR || [];
+
+        for (const month of departure_months) {
+          const monthIndex = [
+            "january",
+            "february",
+            "march",
+            "april",
+            "may",
+            "june",
+            "july",
+            "august",
+            "september",
+            "october",
+            "november",
+            "december",
+          ].indexOf(month.toLowerCase());
+
+          if (monthIndex !== -1) {
+            where.OR.push({
+              start_date: {
+                gte: new Date(new Date().getFullYear(), monthIndex, 1),
+                lt: new Date(new Date().getFullYear(), monthIndex + 1, 0),
+              },
+            });
+
+            // Also check next year
+            where.OR.push({
+              start_date: {
+                gte: new Date(new Date().getFullYear() + 1, monthIndex, 1),
+                lt: new Date(new Date().getFullYear() + 1, monthIndex + 1, 0),
+              },
+            });
+          }
+        }
+      }
+
+      // Get filtered count
+      const filteredCount = await prisma.trip.count({ where });
+
+      // Get paginated data
+      const trips = await prisma.trip.findMany({
+        where,
+        include: {
+          images: true,
+          user: {
+            select: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              profile_picture: true,
+            },
+          },
+          reviews: {
+            select: {
+              id: true,
+              rating: true,
+            },
+          },
+          tripDestinations: {
+            include: {
+              destination: {
+                select: {
+                  id: true,
+                  name: true,
+                  country: true,
+                  image_url: true,
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              bookings: true,
+              reviews: true,
+            },
+          },
+        },
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        skip,
+        take: limit,
+      });
+
+      // Process trips to include average rating and duration
+      let processedTrips = trips.map((trip) => {
+        const avgRating =
+          trip.reviews.length > 0
+            ? trip.reviews.reduce((sum, review) => sum + review.rating, 0) /
+              trip.reviews.length
+            : 0;
+
+        // Calculate trip duration in days
+        const durationMs = trip.end_date.getTime() - trip.start_date.getTime();
+        const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24));
+
+        // Format destinations
+        const destinations = trip.tripDestinations.map((td) => td.destination);
+
+        return {
+          ...trip,
+          avg_rating: avgRating,
+          review_count: trip._count.reviews,
+          booking_count: trip._count.bookings,
+          duration_days: durationDays,
+          destinations: destinations,
+          tripDestinations: undefined,
+          reviews: undefined,
+          _count: undefined,
+        };
+      });
+
+      // Apply post-fetch filters
+      if (duration_range) {
+        const [min, max] = duration_range.split("-").map(Number);
+        processedTrips = processedTrips.filter(
+          (trip) => trip.duration_days >= min && trip.duration_days <= max
+        );
+      }
+
+      // Apply difficulty level filter if provided
+      if (difficulty_level) {
+        // This is a placeholder for difficulty level filtering
+        // In a real implementation, this would filter based on a difficulty field
+        logger.info(`Filtering for difficulty level: ${difficulty_level}`);
+      }
+
+      // Calculate total pages
+      const totalPages = Math.ceil(filteredCount / limit);
+
+      return {
+        data: processedTrips,
+        metadata: {
+          totalCount: await prisma.trip.count(),
+          filteredCount: processedTrips.length,
+          totalPages,
+          currentPage: page,
+          limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      };
+    } catch (error) {
+      logger.error(`Error in customTripQuery: ${error}`);
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError("Failed to execute custom trip query", 500);
     }
   }
 }

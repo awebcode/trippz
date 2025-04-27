@@ -102,10 +102,10 @@ export class AuthService {
       })
 
       // Send verification emails and SMS
-      await EmailService.sendVerificationEmail(data.email, emailVerificationToken)
-      if (data.phone_number && phoneVerificationCode) {
-        await SmsService.sendVerificationSms(data.phone_number, phoneVerificationCode)
-      }
+      // await EmailService.sendVerificationEmail(data.email, emailVerificationToken)
+      // if (data.phone_number && phoneVerificationCode) {
+      //   await SmsService.sendVerificationSms(data.phone_number, phoneVerificationCode)
+      // }
 
       //new UserSession
       const userSession = await prisma.userSession.create({

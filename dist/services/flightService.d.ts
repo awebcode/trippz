@@ -1,0 +1,130 @@
+import type { CreateFlightInput, UpdateFlightInput, SearchFlightsInput, FlightAvailabilityInput } from "../validators/flightValidators";
+import type { PaginatedResult } from "../validators/commonValidators";
+export declare class FlightService {
+    static createFlight(data: CreateFlightInput): Promise<{
+        id: string;
+        created_at: Date;
+        updated_at: Date;
+        cancellation_policy: string | null;
+        has_wifi: boolean | null;
+        flight_number: string;
+        airline: string;
+        departure_time: Date;
+        arrival_time: Date;
+        from_airport: string;
+        to_airport: string;
+        price: number;
+        seat_class: string;
+        available_seats: number | null;
+        aircraft_type: string | null;
+        has_entertainment: boolean | null;
+        has_power_outlets: boolean | null;
+        meal_service: boolean | null;
+        baggage_allowance: number | null;
+    }>;
+    static getFlights(params: SearchFlightsInput): Promise<PaginatedResult<any>>;
+    static getFlightById(id: string): Promise<{
+        avg_rating: number;
+        review_count: number;
+        duration_minutes: number;
+        total_seats: number;
+        booked_seats: number;
+        available_seats: number;
+        bookings: undefined;
+        images: {
+            id: string;
+            created_at: Date;
+            updated_at: Date;
+            user_id: string | null;
+            hotel_id: string | null;
+            trip_id: string | null;
+            file_url: string;
+            file_type: string;
+            is_featured: boolean | null;
+            alt_text: string | null;
+            flightId: string | null;
+            service_id: string | null;
+            package_id: string | null;
+            destination_id: string | null;
+            position: number | null;
+        }[];
+        reviews: ({
+            user: {
+                id: string;
+                first_name: string;
+                last_name: string | null;
+                profile_picture: string | null;
+            };
+        } & {
+            id: string;
+            created_at: Date;
+            updated_at: Date;
+            user_id: string;
+            rating: number;
+            hotel_id: string | null;
+            flight_id: string | null;
+            trip_id: string | null;
+            comment: string | null;
+        })[];
+        id: string;
+        created_at: Date;
+        updated_at: Date;
+        cancellation_policy: string | null;
+        has_wifi: boolean | null;
+        flight_number: string;
+        airline: string;
+        departure_time: Date;
+        arrival_time: Date;
+        from_airport: string;
+        to_airport: string;
+        price: number;
+        seat_class: string;
+        aircraft_type: string | null;
+        has_entertainment: boolean | null;
+        has_power_outlets: boolean | null;
+        meal_service: boolean | null;
+        baggage_allowance: number | null;
+    }>;
+    static updateFlight(id: string, data: UpdateFlightInput): Promise<{
+        id: string;
+        created_at: Date;
+        updated_at: Date;
+        cancellation_policy: string | null;
+        has_wifi: boolean | null;
+        flight_number: string;
+        airline: string;
+        departure_time: Date;
+        arrival_time: Date;
+        from_airport: string;
+        to_airport: string;
+        price: number;
+        seat_class: string;
+        available_seats: number | null;
+        aircraft_type: string | null;
+        has_entertainment: boolean | null;
+        has_power_outlets: boolean | null;
+        meal_service: boolean | null;
+        baggage_allowance: number | null;
+    }>;
+    static deleteFlight(id: string): Promise<{
+        message: string;
+    }>;
+    static searchFlights(params: SearchFlightsInput): Promise<PaginatedResult<any>>;
+    static getFlightAvailability(params: FlightAvailabilityInput): Promise<{
+        flight_id: string;
+        flight_number: string;
+        airline: string;
+        departure_time: Date;
+        arrival_time: Date;
+        from_airport: string;
+        to_airport: string;
+        total_seats: number;
+        booked_seats: number;
+        available_seats: number;
+        requested_passengers: number;
+        is_available: boolean;
+        requested_date: Date;
+    }>;
+    static customFlightQuery(params: any): Promise<PaginatedResult<any>>;
+}
+//# sourceMappingURL=flightService.d.ts.map
