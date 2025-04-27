@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun run dist/index.js",
-    "build": "bun run prisma:generate && bun run prisma:deploy && bun run prisma:seed && tsc -p tsconfig.json",
+    "build": "bun run prisma:generate && bun run prisma:deploy && tsc -p tsconfig.json",
     "prisma:generate": "bun run prisma generate",
     "prisma:deploy": "bun run prisma migrate deploy",
     "prisma:seed": "bun run prisma/seed.ts",
