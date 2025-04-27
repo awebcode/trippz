@@ -3,7 +3,6 @@ import { AppError } from "../utils/appError"
 import { logger } from "../utils/logger"
 import type { DestinationInput } from "../validators/destinationValidators"
 import { uploadToCloudinary } from "../utils/fileUpload"
-import type { Express } from "express"
 
 export class DestinationService {
   static async createDestination(data: DestinationInput, files?: Express.Multer.File[]) {
@@ -42,7 +41,6 @@ export class DestinationService {
                 file_type: file.mimetype,
                 is_featured: index === 0, // First image is featured by default
                 alt_text: `${destination.name} - ${index + 1}`,
-                position: index,
               },
             })
           }),
@@ -93,7 +91,7 @@ export class DestinationService {
         where,
         include: {
           images: {
-            orderBy: { position: "asc" },
+            orderBy: { created_at: "asc" },
           },
         },
         orderBy: {
@@ -132,13 +130,13 @@ export class DestinationService {
         where: { id },
         include: {
           images: {
-            orderBy: { position: "asc" },
+            orderBy: { created_at: "asc" },
           },
           packages: {
             include: {
               agency: true,
               images: {
-                orderBy: { position: "asc" },
+                orderBy: { created_at: "asc" },
                 take: 1,
               },
             },
@@ -205,7 +203,6 @@ export class DestinationService {
                 file_url: uploadResult.url,
                 file_type: file.mimetype,
                 alt_text: `${updatedDestination.name} - ${index + 1}`,
-                position: index,
               },
             })
           }),

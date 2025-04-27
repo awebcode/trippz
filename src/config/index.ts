@@ -4,7 +4,7 @@ dotenv.config();
 export const config = {
   // Server Configuration
   server: {
-    port: parseInt(process.env.PORT || "5000", 10),
+    port: Number.parseInt(process.env.PORT || "5000", 10),
     nodeEnv: process.env.NODE_ENV || "development",
   },
 

@@ -1,52 +1,56 @@
 import { z } from "zod"
-import { paginationQuerySchema, priceRangeQuerySchema } from "./commonValidators"
 
-export const createTripSchema = z
-  .object({
-    trip_name: z
-      .string({ required_error: "Trip name is required" })
-      .min(3, { message: "Trip name must be at least 3 characters" }),
-    description: z
-      .string({ required_error: "Description is required" })
-      .min(10, { message: "Description must be at least 10 characters" }),
-    start_date: z.string({ required_error: "Start date is required" }),
-    end_date: z.string({ required_error: "End date is required" }),
-    trip_type: z.enum(["ADVENTURE", "MEDICAL", "BUSINESS", "LEISURE"], {
-      required_error: "Trip type is required",
+export const createTripSchema = z.object({
+  trip_name: z.string().min(2, { message: "Trip name is required" }),
+  description: z.string().min(10, { message: "Description is required" }),
+  start_date: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Start date must be a valid date",
+  }),
+  end_date: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "End date must be a valid date",
+  }),
+  trip_type: z.enum(["ADVENTURE", "MEDICAL", "BUSINESS", "LEISURE"], {
+    invalid_type_error: "Trip type must be one of: ADVENTURE, MEDICAL, BUSINESS, LEISURE",
+  }),
+  price: z.number().positive({ message: "Price must be a positive number" }),
+  destination_ids: z.array(z.string().uuid()).optional(),
+  max_participants: z.number().int().positive().optional(),
+  itinerary: z.record(z.string()).optional(),
+  inclusions: z.array(z.string()).optional(),
+  exclusions: z.array(z.string()).optional(),
+  cancellation_policy: z.string().optional(),
+  images: z.array(z.string()).optional(),
+})
+
+export const updateTripSchema = z.object({
+  trip_name: z.string().min(2, { message: "Trip name is required" }).optional(),
+  description: z.string().min(10, { message: "Description is required" }).optional(),
+  start_date: z
+    .string()
+    .refine((val) => !val || !isNaN(Date.parse(val)), {
+      message: "Start date must be a valid date",
+    })
+    .optional(),
+  end_date: z
+    .string()
+    .refine((val) => !val || !isNaN(Date.parse(val)), {
+      message: "End date must be a valid date",
+    })
+    .optional(),
+  trip_type: z
+    .enum(["ADVENTURE", "MEDICAL", "BUSINESS", "LEISURE"], {
       invalid_type_error: "Trip type must be one of: ADVENTURE, MEDICAL, BUSINESS, LEISURE",
-    }),
-    price: z.number({ required_error: "Price is required" }).positive({ message: "Price must be positive" }),
-  })
-  .strict()
-
-export const updateTripSchema = z
-  .object({
-    trip_name: z.string().min(3, { message: "Trip name must be at least 3 characters" }),
-    description: z.string().min(10, { message: "Description must be at least 10 characters" }),
-    start_date: z.string(),
-    end_date: z.string(),
-    trip_type: z.enum(["ADVENTURE", "MEDICAL", "BUSINESS", "LEISURE"], {
-      invalid_type_error: "Trip type must be one of: ADVENTURE, MEDICAL, BUSINESS, LEISURE",
-    }),
-    price: z.number().positive({ message: "Price must be positive" }),
-  })
-  .strict()
-  .partial()
-
-export const searchTripsSchema = z
-  .object({
-    trip_type: z
-      .enum(["ADVENTURE", "MEDICAL", "BUSINESS", "LEISURE"], {
-        invalid_type_error: "Trip type must be one of: ADVENTURE, MEDICAL, BUSINESS, LEISURE",
-      })
-      .optional(),
-    start_date: z.string().optional(),
-    end_date: z.string().optional(),
-  })
-  .strict()
-  .merge(paginationQuerySchema)
-  .merge(priceRangeQuerySchema)
+    })
+    .optional(),
+  price: z.number().positive({ message: "Price must be a positive number" }).optional(),
+  destination_ids: z.array(z.string().uuid()).optional(),
+  max_participants: z.number().int().positive().optional(),
+  itinerary: z.record(z.string()).optional(),
+  inclusions: z.array(z.string()).optional(),
+  exclusions: z.array(z.string()).optional(),
+  cancellation_policy: z.string().optional(),
+  images: z.array(z.string()).optional(),
+})
 
 export type CreateTripInput = z.infer<typeof createTripSchema>
 export type UpdateTripInput = z.infer<typeof updateTripSchema>
-export type SearchTripsInput = z.infer<typeof searchTripsSchema>

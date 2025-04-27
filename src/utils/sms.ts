@@ -1,10 +1,10 @@
 import twilio from "twilio"
 import { logger } from "./logger"
-import { config } from "../config";
+import { config } from "../config"
 
 // Initialize Twilio
 
-const client = twilio(config.twilio.accountSid, config.twilio.authToken);
+const client = twilio(config.twilio.accountSid, config.twilio.authToken)
 const twilioFromPhoneNumber = config.twilio.phoneNumber
 
 export class SmsService {
@@ -14,13 +14,13 @@ export class SmsService {
         body: `Your Trippz verification code is: ${code}`,
         from: twilioFromPhoneNumber,
         to: phoneNumber,
-      });
+      })
 
-      logger.info(`SMS sent with SID: ${message.sid}`);
-      return message;
+      logger.info(`SMS sent with SID: ${message.sid}`)
+      return message
     } catch (error) {
-      logger.error(`Error sending verification SMS: ${error}`);
-      throw error;
+      logger.error(`Error sending verification SMS: ${error}`)
+      throw error
     }
     // return `Your Trippz verification code is: ${code}`
   }
@@ -31,13 +31,13 @@ export class SmsService {
         body: `Your Trippz booking (ID: ${bookingId}) has been confirmed! Thank you for choosing Trippz.`,
         from: twilioFromPhoneNumber,
         to: phoneNumber,
-      });
+      })
 
-      logger.info(`Booking confirmation SMS sent with SID: ${message.sid}`);
-      return message;
+      logger.info(`Booking confirmation SMS sent with SID: ${message.sid}`)
+      return message
     } catch (error) {
-      logger.error(`Error sending booking confirmation SMS: ${error}`);
-      throw error;
+      logger.error(`Error sending booking confirmation SMS: ${error}`)
+      throw error
     }
     // }
     // return `Your Trippz booking (ID: ${bookingId}) has been confirmed! Thank you for choosing Trippz.`
@@ -49,13 +49,13 @@ export class SmsService {
         body: `Your Trippz booking (ID: ${bookingId}) has been cancelled. We hope to see you again soon!`,
         from: twilioFromPhoneNumber,
         to: phoneNumber,
-      });
+      })
 
-      logger.info(`Booking cancellation SMS sent with SID: ${message.sid}`);
-      return message;
+      logger.info(`Booking cancellation SMS sent with SID: ${message.sid}`)
+      return message
     } catch (error) {
-      logger.error(`Error sending booking cancellation SMS: ${error}`);
-      throw error;
+      logger.error(`Error sending booking cancellation SMS: ${error}`)
+      throw error
     }
     // }
     // return `Your Trippz booking (ID: ${bookingId}) has been cancelled. We hope to see you again soon!`
@@ -69,13 +69,13 @@ export class SmsService {
         body: `Your Trippz booking (ID: ${bookingId}) has been updated. Check your dashboard for details.`,
         from: twilioFromPhoneNumber,
         to: phoneNumber,
-      });
+      })
 
-      logger.info(`Booking status update SMS sent with SID: ${message.sid}`);
-      return message;
+      logger.info(`Booking status update SMS sent with SID: ${message.sid}`)
+      return message
     } catch (error) {
-      logger.error(`Error sending booking status update SMS: ${error}`);
-      throw error;
+      logger.error(`Error sending booking status update SMS: ${error}`)
+      throw error
     }
     // }
     // return `Your Trippz booking (ID: ${bookingId}) has been updated. Check your dashboard for details.`
@@ -87,13 +87,13 @@ export class SmsService {
         body: msg,
         from: twilioFromPhoneNumber,
         to: phoneNumber,
-      });
+      })
 
-      logger.info(`Notification SMS sent with SID: ${message.sid}`);
-      return message;
+      logger.info(`Notification SMS sent with SID: ${message.sid}`)
+      return message
     } catch (error) {
-      logger.error(`Error sending notification SMS: ${error}`);
-      throw error;
+      logger.error(`Error sending notification SMS: ${error}`)
+      throw error
     }
   }
 }

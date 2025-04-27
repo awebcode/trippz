@@ -5,7 +5,7 @@ import type { CreateReviewInput, UpdateReviewInput } from "../validators/reviewV
 
 export class ReviewController {
   static createReview = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const data = req.body as CreateReviewInput
     const review = await ReviewService.createReview(userId, data)
 
@@ -46,7 +46,7 @@ export class ReviewController {
   })
 
   static getUserReviews = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const reviews = await ReviewService.getUserReviews(userId)
 
     res.status(200).json({
@@ -56,7 +56,7 @@ export class ReviewController {
   })
 
   static updateReview = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const reviewId = req.params.id
     const data = req.body as UpdateReviewInput
     const review = await ReviewService.updateReview(userId, reviewId, data)
@@ -68,7 +68,7 @@ export class ReviewController {
   })
 
   static deleteReview = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const reviewId = req.params.id
     const result = await ReviewService.deleteReview(userId, reviewId)
 

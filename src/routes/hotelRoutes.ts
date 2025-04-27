@@ -1,63 +1,37 @@
-import express from "express";
-import { HotelController } from "../controllers/hotelController";
-import { protect } from "../middleware/authMiddleware";
-import { validateRequest } from "../middleware/validateRequest";
-import {
-  createHotelSchema,
-  updateHotelSchema,
-  searchHotelsSchema,
-} from "../validators/hotelValidators";
-import { idParamSchema } from "../validators/commonValidators";
+import express from "express"
+import { HotelController } from "../controllers/hotelController"
+import { protect, restrictTo } from "../middleware/authMiddleware"
+import { validateRequest } from "../middleware/validateRequest"
+import { createHotelSchema, updateHotelSchema } from "../validators/hotelValidators"
+import { idParamSchema } from "../validators/commonValidators"
 
-const router = express.Router();
+const router = express.Router()
 
 // Public routes
-router.get(
-  "/",
-  validateRequest({ query: searchHotelsSchema }),
-  HotelController.getHotels
-);
+router.get("/", HotelController.getAllHotels)
+router.get("/search", HotelController.searchHotels)
+router.get("/:id", validateRequest({ params: idParamSchema }), HotelController.getHotelById)
+router.get("/:id/availability", validateRequest({ params: idParamSchema }), HotelController.getHotelAvailability)
 
-router.get(
-  "/search",
-  validateRequest({ query: searchHotelsSchema }),
-  HotelController.searchHotels
-);
-
-router.get(
-  "/:id",
-  validateRequest({ params: idParamSchema }),
-  HotelController.getHotelById
-);
-
-router.get(
-  "/:id/availability",
-  validateRequest({ params: idParamSchema }),
-  HotelController.getHotelAvailability
-);
-
-// Protected routes
-router.use(protect);
-
+// Protected routes for admins and service providers
+router.use(protect)
 router.post(
   "/",
+  restrictTo("ADMIN", "SERVICE_PROVIDER"),
   validateRequest({ body: createHotelSchema }),
-  HotelController.createHotel
-);
-
+  HotelController.createHotel,
+)
 router.patch(
   "/:id",
-  validateRequest({
-    params: idParamSchema,
-    body: updateHotelSchema,
-  }),
-  HotelController.updateHotel
-);
-
+  restrictTo("ADMIN", "SERVICE_PROVIDER"),
+  validateRequest({ params: idParamSchema, body: updateHotelSchema }),
+  HotelController.updateHotel,
+)
 router.delete(
   "/:id",
+  restrictTo("ADMIN", "SERVICE_PROVIDER"),
   validateRequest({ params: idParamSchema }),
-  HotelController.deleteHotel
-);
+  HotelController.deleteHotel,
+)
 
-export { router as hotelRoutes };
+export { router as hotelRoutes }

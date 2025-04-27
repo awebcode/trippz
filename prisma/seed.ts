@@ -1,8 +1,8 @@
-import { prisma } from "../src/lib/prisma";
-import { faker } from "@faker-js/faker";
-import { logger } from "../src/utils/logger";
+import { prisma } from "../src/lib/prisma"
+import { faker } from "@faker-js/faker"
+import { logger } from "../src/utils/logger"
 
-const LIMIT = 20;
+const LIMIT = 20
 
 /**
  * Seed database with fake data
@@ -50,20 +50,18 @@ async function seed() {
   try {
     // Helper function to get random enum value
     const randomEnum = (enumObj): any => {
-      const values = Object.values(enumObj);
-      return values[Math.floor(Math.random() * values.length)];
-    };
+      const values = Object.values(enumObj)
+      return values[Math.floor(Math.random() * values.length)]
+    }
 
     // Helper function to generate random date within a range
     const randomDate = (start, end) => {
-      return new Date(
-        start.getTime() + Math.random() * (end.getTime() - start.getTime())
-      );
-    };
+      return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()))
+    }
 
     // Seed Users (LIMIT records)
-    const users: any = [];
-    logger.info("Seeding users...");
+    const users: any = []
+    logger.info("Seeding users...")
     for (let i = 0; i < LIMIT; i++) {
       const user = await prisma.user.create({
         data: {
@@ -87,15 +85,15 @@ async function seed() {
           address: faker.location.streetAddress(),
           profile_picture: faker.image.avatar(),
         },
-      });
-      users.push(user);
+      })
+      users.push(user)
     }
 
     // Seed RefreshToken (LIMIT records, linked to users)
-    const refreshTokens: any = [];
-    logger.info("Seeding refresh tokens...");
+    const refreshTokens: any = []
+    logger.info("Seeding refresh tokens...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const token = await prisma.refreshToken.create({
         data: {
           id: faker.string.uuid(),
@@ -104,15 +102,15 @@ async function seed() {
           expiresAt: faker.date.future(),
           created_at: faker.date.past(),
         },
-      });
-      refreshTokens.push(token);
+      })
+      refreshTokens.push(token)
     }
 
     // Seed EmailVerification (LIMIT records, linked to users)
-    const emailVerifications: any = [];
-    logger.info("Seeding email verifications...");
+    const emailVerifications: any = []
+    logger.info("Seeding email verifications...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const verification = await prisma.emailVerification.create({
         data: {
           id: faker.string.uuid(),
@@ -121,15 +119,15 @@ async function seed() {
           expiresAt: faker.date.future(),
           created_at: faker.date.past(),
         },
-      });
-      emailVerifications.push(verification);
+      })
+      emailVerifications.push(verification)
     }
 
     // Seed PhoneVerification (LIMIT records, linked to users)
-    const phoneVerifications: any = [];
-    logger.info("Seeding phone verifications...");
+    const phoneVerifications: any = []
+    logger.info("Seeding phone verifications...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const verification = await prisma.phoneVerification.create({
         data: {
           id: faker.string.uuid(),
@@ -138,15 +136,15 @@ async function seed() {
           expiresAt: faker.date.future(),
           created_at: faker.date.past(),
         },
-      });
-      phoneVerifications.push(verification);
+      })
+      phoneVerifications.push(verification)
     }
 
     // Seed PasswordReset (LIMIT records, linked to users)
-    const passwordResets: any = [];
-    logger.info("Seeding password resets...");
+    const passwordResets: any = []
+    logger.info("Seeding password resets...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const reset = await prisma.passwordReset.create({
         data: {
           id: faker.string.uuid(),
@@ -155,15 +153,15 @@ async function seed() {
           expiresAt: faker.date.future(),
           created_at: faker.date.past(),
         },
-      });
-      passwordResets.push(reset);
+      })
+      passwordResets.push(reset)
     }
 
     // Seed SocialLogin (LIMIT records, linked to users)
-    const socialLogins: any = [];
-    logger.info("Seeding social logins...");
+    const socialLogins: any = []
+    logger.info("Seeding social logins...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const login = await prisma.socialLogin.create({
         data: {
           id: faker.string.uuid(),
@@ -177,15 +175,15 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      socialLogins.push(login);
+      })
+      socialLogins.push(login)
     }
 
     // Seed Profile (LIMIT records, linked to users)
-    const profiles: any = [];
-    logger.info("Seeding profiles...");
+    const profiles: any = []
+    logger.info("Seeding profiles...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const profile = await prisma.profile.create({
         data: {
           id: faker.string.uuid(),
@@ -197,13 +195,13 @@ async function seed() {
           address: faker.location.streetAddress(),
           updated_at: faker.date.recent(),
         },
-      });
-      profiles.push(profile);
+      })
+      profiles.push(profile)
     }
 
     // Seed Hotels (LIMIT records)
-    const hotels: any = [];
-    logger.info("Seeding hotels...");
+    const hotels: any = []
+    logger.info("Seeding hotels...")
     for (let i = 0; i < LIMIT; i++) {
       const hotel = await prisma.hotel.create({
         data: {
@@ -212,21 +210,18 @@ async function seed() {
           address: faker.location.streetAddress(),
           rating: faker.number.float({ min: 1, max: 5 }),
           price_per_night: faker.number.float({ min: 50, max: 500 }),
-          amenities: faker.helpers.arrayElements(
-            ["WiFi", "Pool", "Gym", "Spa", "Restaurant"],
-            { min: 2, max: 5 }
-          ),
+          amenities: faker.helpers.arrayElements(["WiFi", "Pool", "Gym", "Spa", "Restaurant"], { min: 2, max: 5 }),
           available_rooms: faker.number.int({ min: 10, max: 100 }),
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      hotels.push(hotel);
+      })
+      hotels.push(hotel)
     }
 
     // Seed Flights (LIMIT records)
-    const flights: any = [];
-    logger.info("Seeding flights...");
+    const flights: any = []
+    logger.info("Seeding flights...")
     for (let i = 0; i < LIMIT; i++) {
       const flight = await prisma.flight.create({
         data: {
@@ -242,15 +237,15 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      flights.push(flight);
+      })
+      flights.push(flight)
     }
 
     // Seed Trips (LIMIT records, linked to users)
-    const trips: any = [];
-    logger.info("Seeding trips...");
+    const trips: any = []
+    logger.info("Seeding trips...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const trip = await prisma.trip.create({
         data: {
           id: faker.string.uuid(),
@@ -269,13 +264,13 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      trips.push(trip);
+      })
+      trips.push(trip)
     }
 
     // Seed CancelationPolicy (LIMIT records)
-    const cancelationPolicies: any = [];
-    logger.info("Seeding cancelation policies...");
+    const cancelationPolicies: any = []
+    logger.info("Seeding cancelation policies...")
     for (let i = 0; i < LIMIT; i++) {
       const policy = await prisma.cancelationPolicy.create({
         data: {
@@ -289,15 +284,15 @@ async function seed() {
           penalty: faker.number.float({ min: 0, max: 100 }),
           created_at: faker.date.past(),
         },
-      });
-      cancelationPolicies.push(policy);
+      })
+      cancelationPolicies.push(policy)
     }
 
     // Seed Bookings (LIMIT records, linked to users, hotels, flights, trips, cancelation policies)
-    const bookings: any = [];
-    logger.info("Seeding bookings...");
+    const bookings: any = []
+    logger.info("Seeding bookings...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const booking = await prisma.booking.create({
         data: {
           id: faker.string.uuid(),
@@ -321,15 +316,15 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      bookings.push(booking);
+      })
+      bookings.push(booking)
     }
 
     // Seed Payments (LIMIT records, linked to bookings)
-    const payments: any = [];
-    logger.info("Seeding payments...");
+    const payments: any = []
+    logger.info("Seeding payments...")
     for (let i = 0; i < LIMIT; i++) {
-      const booking = bookings[i];
+      const booking = bookings[i]
       const payment = await prisma.payment.create({
         data: {
           id: faker.string.uuid(),
@@ -351,15 +346,15 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      payments.push(payment);
+      })
+      payments.push(payment)
     }
 
     // Seed PaymentDetail (LIMIT records, linked to payments)
-    const paymentDetails: any = [];
-    logger.info("Seeding payment details...");
+    const paymentDetails: any = []
+    logger.info("Seeding payment details...")
     for (let i = 0; i < LIMIT; i++) {
-      const payment = payments[i];
+      const payment = payments[i]
       const detail = await prisma.paymentDetail.create({
         data: {
           id: faker.string.uuid(),
@@ -368,21 +363,19 @@ async function seed() {
           provider: faker.company.name(),
           payment_data: JSON.stringify({ card: faker.finance.creditCardNumber() }),
           refund_id: faker.datatype.boolean() ? faker.string.uuid() : null,
-          refund_data: faker.datatype.boolean()
-            ? JSON.stringify({ reason: faker.lorem.sentence() })
-            : null,
+          refund_data: faker.datatype.boolean() ? JSON.stringify({ reason: faker.lorem.sentence() }) : null,
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      paymentDetails.push(detail);
+      })
+      paymentDetails.push(detail)
     }
 
     // Seed Reservations (LIMIT records, linked to users)
-    const reservations: any = [];
-    logger.info("Seeding reservations...");
+    const reservations: any = []
+    logger.info("Seeding reservations...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const reservation = await prisma.reservation.create({
         data: {
           id: faker.string.uuid(),
@@ -396,15 +389,15 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      reservations.push(reservation);
+      })
+      reservations.push(reservation)
     }
 
     // Seed Favorites (LIMIT records, linked to users, hotels, flights, trips)
-    const favorites: any = [];
-    logger.info("Seeding favorites...");
+    const favorites: any = []
+    logger.info("Seeding favorites...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const favorite = await prisma.favorite.create({
         data: {
           id: faker.string.uuid(),
@@ -414,13 +407,13 @@ async function seed() {
           trip_id: i % 3 === 0 ? trips[i % trips.length].id : null,
           created_at: faker.date.past(),
         },
-      });
-      favorites.push(favorite);
+      })
+      favorites.push(favorite)
     }
 
     // Seed Images (LIMIT records, linked to users, hotels, flights, trips)
-    const images: any = [];
-    logger.info("Seeding images...");
+    const images: any = []
+    logger.info("Seeding images...")
     for (let i = 0; i < LIMIT; i++) {
       const image = await prisma.image.create({
         data: {
@@ -434,15 +427,15 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      images.push(image);
+      })
+      images.push(image)
     }
 
     // Seed SearchHistory (LIMIT records, linked to users)
-    const searchHistories: any = [];
-    logger.info("Seeding search history...");
+    const searchHistories: any = []
+    logger.info("Seeding search history...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const history = await prisma.searchHistory.create({
         data: {
           id: faker.string.uuid(),
@@ -451,15 +444,15 @@ async function seed() {
           search_type: randomEnum({ FLIGHT: "FLIGHT", HOTEL: "HOTEL", TRIP: "TRIP" }),
           created_at: faker.date.past(),
         },
-      });
-      searchHistories.push(history);
+      })
+      searchHistories.push(history)
     }
 
     // Seed RecentSearch (LIMIT records, linked to users)
-    const recentSearches: any = [];
-    logger.info("Seeding recent searches...");
+    const recentSearches: any = []
+    logger.info("Seeding recent searches...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const search = await prisma.recentSearch.create({
         data: {
           id: faker.string.uuid(),
@@ -472,15 +465,15 @@ async function seed() {
           }),
           created_at: faker.date.past(),
         },
-      });
-      recentSearches.push(search);
+      })
+      recentSearches.push(search)
     }
 
     // Seed Notifications (LIMIT records, linked to users)
-    const notifications: any = [];
-    logger.info("Seeding notifications...");
+    const notifications: any = []
+    logger.info("Seeding notifications...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const notification = await prisma.notification.create({
         data: {
           id: faker.string.uuid(),
@@ -504,15 +497,15 @@ async function seed() {
           is_read: faker.datatype.boolean(),
           created_at: faker.date.past(),
         },
-      });
-      notifications.push(notification);
+      })
+      notifications.push(notification)
     }
 
     // Seed NotificationPreference (LIMIT records, linked to users)
-    const notificationPreferences: any = [];
-    logger.info("Seeding notification preferences...");
+    const notificationPreferences: any = []
+    logger.info("Seeding notification preferences...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const preference = await prisma.notificationPreference.create({
         data: {
           id: faker.string.uuid(),
@@ -528,15 +521,15 @@ async function seed() {
           reminder_enabled: faker.datatype.boolean(),
           alert_enabled: faker.datatype.boolean(),
         },
-      });
-      notificationPreferences.push(preference);
+      })
+      notificationPreferences.push(preference)
     }
 
     // Seed PushToken (LIMIT records, linked to users)
-    const pushTokens: any = [];
-    logger.info("Seeding push tokens...");
+    const pushTokens: any = []
+    logger.info("Seeding push tokens...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const token = await prisma.pushToken.create({
         data: {
           id: faker.string.uuid(),
@@ -544,13 +537,13 @@ async function seed() {
           token: faker.string.alphanumeric(64),
           created_at: faker.date.past(),
         },
-      });
-      pushTokens.push(token);
+      })
+      pushTokens.push(token)
     }
 
     // Seed Filter (LIMIT records)
-    const filters: any = [];
-    logger.info("Seeding filters...");
+    const filters: any = []
+    logger.info("Seeding filters...")
     for (let i = 0; i < LIMIT; i++) {
       const filter = await prisma.filter.create({
         data: {
@@ -564,19 +557,16 @@ async function seed() {
             BATHROOMS: "BATHROOMS",
             SEAT_CLASS: "SEAT_CLASS",
           }),
-          values: faker.helpers.arrayElements(
-            ["low", "medium", "high", "city", "suburb"],
-            { min: 2, max: 5 }
-          ),
+          values: faker.helpers.arrayElements(["low", "medium", "high", "city", "suburb"], { min: 2, max: 5 }),
           created_at: faker.date.past(),
         },
-      });
-      filters.push(filter);
+      })
+      filters.push(filter)
     }
 
     // Seed TrendingSearch (LIMIT records)
-    const trendingSearches: any = [];
-    logger.info("Seeding trending searches...");
+    const trendingSearches: any = []
+    logger.info("Seeding trending searches...")
     for (let i = 0; i < LIMIT; i++) {
       const search = await prisma.trendingSearch.create({
         data: {
@@ -584,15 +574,15 @@ async function seed() {
           search_query: faker.lorem.words(3),
           created_at: faker.date.past(),
         },
-      });
-      trendingSearches.push(search);
+      })
+      trendingSearches.push(search)
     }
 
     // Seed UserRole (LIMIT records, linked to users)
-    const userRoles: any = [];
-    logger.info("Seeding user roles...");
+    const userRoles: any = []
+    logger.info("Seeding user roles...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const role = await prisma.userRole.create({
         data: {
           id: faker.string.uuid(),
@@ -604,15 +594,15 @@ async function seed() {
             TRAVEL_AGENCY: "TRAVEL_AGENCY",
           }),
         },
-      });
-      userRoles.push(role);
+      })
+      userRoles.push(role)
     }
 
     // Seed Reviews (LIMIT records, linked to users, hotels, flights, trips)
-    const reviews: any = [];
-    logger.info("Seeding reviews...");
+    const reviews: any = []
+    logger.info("Seeding reviews...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const review = await prisma.review.create({
         data: {
           id: faker.string.uuid(),
@@ -625,13 +615,13 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      reviews.push(review);
+      })
+      reviews.push(review)
     }
 
     // Seed Discounts (LIMIT records)
-    const discounts: any = [];
-    logger.info("Seeding discounts...");
+    const discounts: any = []
+    logger.info("Seeding discounts...")
     for (let i = 0; i < LIMIT; i++) {
       const discount = await prisma.discount.create({
         data: {
@@ -645,15 +635,15 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      discounts.push(discount);
+      })
+      discounts.push(discount)
     }
 
     // Seed Transactions (LIMIT records, linked to users)
-    const transactions: any = [];
-    logger.info("Seeding transactions...");
+    const transactions: any = []
+    logger.info("Seeding transactions...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const transaction = await prisma.transaction.create({
         data: {
           id: faker.string.uuid(),
@@ -668,15 +658,15 @@ async function seed() {
           }),
           created_at: faker.date.past(),
         },
-      });
-      transactions.push(transaction);
+      })
+      transactions.push(transaction)
     }
 
     // Seed ExternalIntegration (LIMIT records, linked to users)
-    const externalIntegrations: any = [];
-    logger.info("Seeding external integrations...");
+    const externalIntegrations: any = []
+    logger.info("Seeding external integrations...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const integration = await prisma.externalIntegration.create({
         data: {
           id: faker.string.uuid(),
@@ -686,15 +676,15 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      externalIntegrations.push(integration);
+      })
+      externalIntegrations.push(integration)
     }
 
     // Seed UserActivity (LIMIT records, linked to users)
-    const userActivities: any = [];
-    logger.info("Seeding user activities...");
+    const userActivities: any = []
+    logger.info("Seeding user activities...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const activity = await prisma.userActivity.create({
         data: {
           id: faker.string.uuid(),
@@ -709,15 +699,15 @@ async function seed() {
           activity_data: faker.lorem.sentence(),
           created_at: faker.date.past(),
         },
-      });
-      userActivities.push(activity);
+      })
+      userActivities.push(activity)
     }
 
     // Seed Addresses (LIMIT records, linked to users)
-    const addresses: any = [];
-    logger.info("Seeding addresses...");
+    const addresses: any = []
+    logger.info("Seeding addresses...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const address = await prisma.address.create({
         data: {
           id: faker.string.uuid(),
@@ -729,15 +719,15 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      addresses.push(address);
+      })
+      addresses.push(address)
     }
 
     // Seed ServiceProviders (LIMIT records, linked to users)
-    const serviceProviders: any = [];
-    logger.info("Seeding service providers...");
+    const serviceProviders: any = []
+    logger.info("Seeding service providers...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const provider = await prisma.serviceProvider.create({
         data: {
           id: faker.string.uuid(),
@@ -753,15 +743,15 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      serviceProviders.push(provider);
+      })
+      serviceProviders.push(provider)
     }
 
     // Seed Services (LIMIT records, linked to service providers)
-    const services: any = [];
-    logger.info("Seeding services...");
+    const services: any = []
+    logger.info("Seeding services...")
     for (let i = 0; i < LIMIT; i++) {
-      const provider = serviceProviders[i % serviceProviders.length];
+      const provider = serviceProviders[i % serviceProviders.length]
       const service = await prisma.service.create({
         data: {
           id: faker.string.uuid(),
@@ -773,25 +763,25 @@ async function seed() {
           location: faker.location.city(),
           category: faker.commerce.department(),
           availability: {
-            days: faker.helpers.arrayElements(
-              ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-              { min: 2, max: 5 }
-            ),
+            days: faker.helpers.arrayElements(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], {
+              min: 2,
+              max: 5,
+            }),
           },
           max_participants: faker.number.int({ min: 1, max: 50 }),
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      services.push(service);
+      })
+      services.push(service)
     }
 
     // Seed ServiceOrders (LIMIT records, linked to services and users)
-    const serviceOrders: any = [];
-    logger.info("Seeding service orders...");
+    const serviceOrders: any = []
+    logger.info("Seeding service orders...")
     for (let i = 0; i < LIMIT; i++) {
-      const service = services[i % services.length];
-      const user = users[i];
+      const service = services[i % services.length]
+      const user = users[i]
       const order = await prisma.serviceOrder.create({
         data: {
           id: faker.string.uuid(),
@@ -812,15 +802,15 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      serviceOrders.push(order);
+      })
+      serviceOrders.push(order)
     }
 
     // Seed TravelAgencies (LIMIT records, linked to users)
-    const travelAgencies: any = [];
-    logger.info("Seeding travel agencies...");
+    const travelAgencies: any = []
+    logger.info("Seeding travel agencies...")
     for (let i = 0; i < LIMIT; i++) {
-      const user = users[i];
+      const user = users[i]
       const agency = await prisma.travelAgency.create({
         data: {
           id: faker.string.uuid(),
@@ -836,13 +826,13 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      travelAgencies.push(agency);
+      })
+      travelAgencies.push(agency)
     }
 
     // Seed Destinations (LIMIT records)
-    const destinations: any = [];
-    logger.info("Seeding destinations...");
+    const destinations: any = []
+    logger.info("Seeding destinations...")
     for (let i = 0; i < LIMIT; i++) {
       const destination = await prisma.destination.create({
         data: {
@@ -857,15 +847,15 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      destinations.push(destination);
+      })
+      destinations.push(destination)
     }
 
     // Seed TravelPackages (LIMIT records, linked to travel agencies and destinations)
-    const travelPackages: any = [];
-    logger.info("Seeding travel packages...");
+    const travelPackages: any = []
+    logger.info("Seeding travel packages...")
     for (let i = 0; i < LIMIT; i++) {
-      const agency = travelAgencies[i % travelAgencies.length];
+      const agency = travelAgencies[i % travelAgencies.length]
       const packageData = await prisma.travelPackage.create({
         data: {
           id: faker.string.uuid(),
@@ -884,16 +874,16 @@ async function seed() {
             connect: [{ id: destinations[i % destinations.length].id }],
           },
         },
-      });
-      travelPackages.push(packageData);
+      })
+      travelPackages.push(packageData)
     }
 
     // Seed PackageOrders (LIMIT records, linked to travel packages and users)
-    const packageOrders: any = [];
-    logger.info("Seeding package orders...");
+    const packageOrders: any = []
+    logger.info("Seeding package orders...")
     for (let i = 0; i < LIMIT; i++) {
-      const packageData = travelPackages[i % travelPackages.length];
-      const user = users[i];
+      const packageData = travelPackages[i % travelPackages.length]
+      const user = users[i]
       const order = await prisma.packageOrder.create({
         data: {
           id: faker.string.uuid(),
@@ -914,12 +904,12 @@ async function seed() {
           created_at: faker.date.past(),
           updated_at: faker.date.recent(),
         },
-      });
-      packageOrders.push(order);
+      })
+      packageOrders.push(order)
     }
 
     // Seed SystemSetting (1 record, as it's typically a singleton)
-    logger.info("Seeding system settings...");
+    logger.info("Seeding system settings...")
     await prisma.systemSetting.create({
       data: {
         id: faker.string.uuid(),
@@ -933,14 +923,14 @@ async function seed() {
         created_at: faker.date.past(),
         updated_at: faker.date.recent(),
       },
-    });
+    })
 
-    logger.info("Seeding completed successfully!");
+    logger.info("Seeding completed successfully!")
   } catch (error) {
-    logger.error("Error seeding database:", error);
+    logger.error("Error seeding database:", error)
   } finally {
-    await prisma.$disconnect();
+    await prisma.$disconnect()
   }
 }
 
-seed();
+seed()

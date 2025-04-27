@@ -55,12 +55,14 @@ model User {
 }
 
 model UserSession {
-  id String @id @default(uuid()) @db.Uuid
-  ip_address String? // Optional field
-  user_agent String? // Optional field
-  is_active  Boolean  @default(true)
-  user_id    String   @db.Uuid
-  user       User     @relation(fields: [user_id], references: [id])
+  id            String    @id @default(uuid()) @db.Uuid
+  ip_address    String? // Optional field
+  user_agent    String? // Optional field
+  is_active     Boolean   @default(true)
+  user_id       String    @db.Uuid
+  user          User      @relation(fields: [user_id], references: [id])
+  last_activity DateTime?
+
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
@@ -108,7 +110,7 @@ model SocialLogin {
   provider   SocialProvider
   providerId String
   created_at DateTime       @default(now())
-  updated_at  DateTime       @updatedAt
+  updated_at DateTime       @updatedAt
 
   @@unique([userId, provider])
   @@index([providerId, provider])
@@ -334,6 +336,8 @@ model Image {
   trip           Trip?          @relation(fields: [trip_id], references: [id])
   file_url       String
   file_type      String
+  is_featured    Boolean?
+  alt_text       String?
   created_at     DateTime       @default(now())
   updated_at     DateTime       @updatedAt
   Flight         Flight?        @relation(fields: [flightId], references: [id])
@@ -644,11 +648,23 @@ model PackageOrder {
 }
 
 model Destination {
-  id                 String          @id @default(uuid()) @db.Uuid
-  name               String
-  country            String
-  city               String?
-  description        String
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String
+  country     String
+  city        String?
+  description String
+  latitude    Float?
+  longitude   Float?
+  currency    String?
+
+  language           String?
+  timezone           String?
+  safety_index       Float?
+  cost_index         Float?
+  featured           Boolean?
+  meta_title         String?
+  meta_description   String?
+  activities         String[]
   highlights         String[]
   best_time_to_visit String?
   travel_tips        String[]

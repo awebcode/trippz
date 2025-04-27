@@ -5,7 +5,7 @@ import type { UpdateProfileInput, UpdatePasswordInput, AddAddressInput } from ".
 
 export class UserController {
   static getProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const profile = await UserService.getProfile(userId)
 
     res.status(200).json({
@@ -15,7 +15,7 @@ export class UserController {
   })
 
   static updateProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const data = req.body as UpdateProfileInput
     const updatedProfile = await UserService.updateProfile(userId, data)
 
@@ -26,7 +26,7 @@ export class UserController {
   })
 
   static updatePassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const data = req.body as UpdatePasswordInput
     const result = await UserService.updatePassword(userId, data)
 
@@ -37,7 +37,7 @@ export class UserController {
   })
 
   static uploadProfilePicture = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
 
     if (!req.file) {
       return res.status(400).json({
@@ -55,7 +55,7 @@ export class UserController {
   })
 
   static addAddress = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const data = req.body as AddAddressInput
     const address = await UserService.addAddress(userId, data)
 
@@ -66,7 +66,7 @@ export class UserController {
   })
 
   static getAddresses = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const addresses = await UserService.getAddresses(userId)
 
     res.status(200).json({
@@ -76,7 +76,7 @@ export class UserController {
   })
 
   static deleteAddress = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const addressId = req.params.id
     const result = await UserService.deleteAddress(userId, addressId)
 

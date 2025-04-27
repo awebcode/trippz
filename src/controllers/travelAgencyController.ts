@@ -10,7 +10,7 @@ import type { Express } from "express"
 
 export class TravelAgencyController {
   static register = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const data = req.body as TravelAgencyProfileInput
     const travelAgency = await TravelAgencyService.register(userId, data)
 
@@ -22,7 +22,7 @@ export class TravelAgencyController {
   })
 
   static getProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const profile = await TravelAgencyService.getProfile(userId)
 
     res.status(200).json({
@@ -32,7 +32,7 @@ export class TravelAgencyController {
   })
 
   static updateProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const data = req.body as TravelAgencyProfileInput
     const updatedProfile = await TravelAgencyService.updateProfile(userId, data)
 
@@ -44,7 +44,7 @@ export class TravelAgencyController {
   })
 
   static createPackage = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const data = req.body as TravelPackageInput
     const files = req.files as Express.Multer.File[] | undefined
     const travelPackage = await TravelAgencyService.createPackage(userId, data, files)
@@ -57,7 +57,7 @@ export class TravelAgencyController {
   })
 
   static getPackages = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const packages = await TravelAgencyService.getPackages(userId)
 
     res.status(200).json({
@@ -77,7 +77,7 @@ export class TravelAgencyController {
   })
 
   static updatePackage = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const packageId = req.params.id
     const data = req.body as TravelPackageInput
     const files = req.files as Express.Multer.File[] | undefined
@@ -91,7 +91,7 @@ export class TravelAgencyController {
   })
 
   static deletePackage = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const packageId = req.params.id
     const result = await TravelAgencyService.deletePackage(userId, packageId)
 
@@ -102,7 +102,7 @@ export class TravelAgencyController {
   })
 
   static getOrders = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const orders = await TravelAgencyService.getOrders(userId)
 
     res.status(200).json({
@@ -112,7 +112,7 @@ export class TravelAgencyController {
   })
 
   static respondToOrder = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const orderId = req.params.orderId
     const data = req.body as PackageResponseInput
     const updatedOrder = await TravelAgencyService.respondToOrder(userId, orderId, data.agency_response)

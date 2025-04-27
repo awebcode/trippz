@@ -23,12 +23,12 @@ export const paginationQuerySchema = z.object({
         .number()
         .positive({ message: "Limit must be a positive number" })
         .max(100, { message: "Limit cannot exceed 100" })
-        .default(10)
+        .default(10),
     ),
- 
+
   sortBy: z.string().optional().default("created_at"),
   sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
-});
+})
 
 // Generic search query parameters
 export const searchQuerySchema = z.object({

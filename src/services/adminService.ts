@@ -10,7 +10,7 @@ export class AdminService {
   static async getUsers(query: UserQuery): Promise<PaginatedResult<User>> {
     try {
       const { page, limit, sortBy, sortOrder, search, role, emailVerified, phoneVerified } = query
-     console.log({ page, limit, sortBy, sortOrder, search, role, emailVerified, phoneVerified })
+      console.log({ page, limit, sortBy, sortOrder, search, role, emailVerified, phoneVerified })
       // Calculate pagination
       const skip = (page - 1) * limit
 

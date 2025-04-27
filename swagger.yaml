@@ -21,10 +21,12 @@ info:
     email: support@trippz.com
 
 servers:
+  - url: https://api.travelapp.com/api/v1
+    description: Production server
+  - url: https://trippz-api-v1-render.app/api/v1
+    description: Testing server
   - url: http://localhost:5000/api/v1
     description: Development server
-  - url: https://api.trippz.com/api/v1
-    description: Production server
 
 components:
   securitySchemes:
@@ -45,15 +47,19 @@ components:
           type: string
           format: uuid
           example: "123e4567-e89b-12d3-a456-426614174000"
-
-        full_name:
+        first_name:
           type: string
-          example: "Asikur Rahman"
-
+          example: "Asikur"
+        last_name:
+          type: string
+          example: "Rahman"
         email:
           type: string
           format: email
           example: "asikurrahaman997@gmail.com"
+        phone_number:
+          type: string
+          example: "+8801712345678"
         role:
           type: string
           enum: [USER, SERVICE_PROVIDER, TRAVEL_AGENCY, ADMIN]
@@ -68,19 +74,33 @@ components:
           type: string
           nullable: true
           example: "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     RegisterInput:
       type: object
       required:
-        - full_name
+        - first_name
+        - last_name
         - email
         - password
       properties:
-        full_name:
+        first_name:
           type: string
           minLength: 2
-          example: "Asikur Rahman"
-          default: "Asikur Rahman"
+          example: "Asikur"
+          default: "Asikur"
+        last_name:
+          type: string
+          minLength: 2
+          example: "Rahman"
+          default: "Rahman"
         email:
           type: string
           format: email
@@ -101,7 +121,6 @@ components:
           enum: [USER, SERVICE_PROVIDER, TRAVEL_AGENCY]
           example: "USER"
           default: USER
-
         date_of_birth:
           type: string
           format: date
@@ -209,6 +228,16 @@ components:
           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
           default: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
+    LogoutInput:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          default: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
     Hotel:
       type: object
       properties:
@@ -244,6 +273,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Image"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     Flight:
       type: object
@@ -283,6 +320,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Image"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     Trip:
       type: object
@@ -323,6 +368,14 @@ components:
             $ref: "#/components/schemas/Image"
         user:
           $ref: "#/components/schemas/User"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     Booking:
       type: object
@@ -370,6 +423,14 @@ components:
           format: uuid
           nullable: true
           example: null
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     Payment:
       type: object
@@ -400,6 +461,14 @@ components:
           example: "2023-11-25T14:30:00Z"
         payment_details:
           $ref: "#/components/schemas/PaymentDetail"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     PaymentDetail:
       type: object
@@ -457,6 +526,14 @@ components:
           example: "Great experience! Would definitely recommend."
         user:
           $ref: "#/components/schemas/User"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     Image:
       type: object
@@ -480,6 +557,14 @@ components:
         position:
           type: integer
           example: 0
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     ApiResponse:
       type: object
@@ -498,6 +583,9 @@ components:
             totalCount:
               type: integer
               example: 100
+            filteredCount:
+              type: integer
+              example: 50
             totalPages:
               type: integer
               example: 5
@@ -513,6 +601,27 @@ components:
             hasPreviousPage:
               type: boolean
               example: false
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+                example: "email"
+              message:
+                type: string
+                example: "Email is required"
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "An error occurred"
         errors:
           type: array
           items:
@@ -569,6 +678,14 @@ components:
           example: 4.8
         user:
           $ref: "#/components/schemas/User"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     Service:
       type: object
@@ -622,6 +739,14 @@ components:
             $ref: "#/components/schemas/Image"
         provider:
           $ref: "#/components/schemas/ServiceProvider"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     TravelAgency:
       type: object
@@ -667,6 +792,14 @@ components:
           example: 4.7
         user:
           $ref: "#/components/schemas/User"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     TravelPackage:
       type: object
@@ -725,6 +858,14 @@ components:
             $ref: "#/components/schemas/Destination"
         agency:
           $ref: "#/components/schemas/TravelAgency"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     Destination:
       type: object
@@ -816,6 +957,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Image"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
 
     Notification:
       type: object
@@ -834,9 +983,9 @@ components:
         message:
           type: string
           example: "Your booking #12345 has been confirmed."
-        type:
+        notification_type:
           type: string
-          enum: [SYSTEM, BOOKING, PAYMENT, PROMOTIONAL, REMINDER, ALERT]
+          enum: [SYSTEM, BOOKING, PAYMENT, PROMOTIONAL, REMINDER, ALERT, NEW_BOOKING, TRIP_UPDATES, SPECIAL_OFFERS]
           example: "BOOKING"
         entity_id:
           type: string
@@ -1358,7 +1507,7 @@ components:
           default: "Book now and get 20% off on your next trip!"
         type:
           type: string
-          enum: [SYSTEM, BOOKING, PAYMENT, PROMOTIONAL, REMINDER, ALERT]
+          enum: [SYSTEM, BOOKING, PAYMENT, PROMOTIONAL, REMINDER, ALERT, NEW_BOOKING, TRIP_UPDATES, SPECIAL_OFFERS]
           example: "PROMOTIONAL"
           default: "PROMOTIONAL"
         channels:
@@ -1389,7 +1538,6 @@ components:
           type: string
           format: uuid
           example: "123e4567-e89b-12d3-a456-426614174000"
-
         maintenance_mode:
           type: boolean
           example: false
@@ -1811,163 +1959,163 @@ paths:
                 $ref: "#/components/schemas/ApiResponse"
 
   /auth/logout:
-  post:
-    summary: Logout current session
-    description: Logs out the current user session by invalidating the provided refresh token and clearing authentication cookies. Requires a valid refresh token.
-    tags:
-      - Authentication
-    security:
-      - BearerAuth: []
-      - CookieAuth: []
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/LogoutInput"
-    responses:
-      "200":
-        description: Successfully logged out the current session
+    post:
+      summary: Logout current session
+      description: Logs out the current user session by invalidating the provided refresh token and clearing authentication cookies. Requires a valid refresh token.
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ApiResponse"
-            example:
-              success: true
-              message: Logged out successfully
-      "400":
-        description: Invalid or missing refresh token
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            example:
-              success: false
-              message: Refresh token is required
-      "401":
-        description: Unauthorized - Invalid or expired token
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            example:
-              success: false
-              message: Invalid refresh token
-      "500":
-        description: Internal server error
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            example:
-              success: false
-              message: Failed to logout
+              $ref: "#/components/schemas/LogoutInput"
+      responses:
+        "200":
+          description: Successfully logged out the current session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Logged out successfully
+        "400":
+          description: Invalid or missing refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Refresh token is required
+        "401":
+          description: Unauthorized - Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Invalid refresh token
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Failed to logout
 
-/auth/logout-other-devices:
-  post:
-    summary: Logout from other devices
-    description: Logs out the user from all sessions except the current one by invalidating all other refresh tokens. Requires a valid refresh token.
-    tags:
-      - Authentication
-    security:
-      - BearerAuth: []
-      - CookieAuth: []
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/LogoutInput"
-    responses:
-      "200":
-        description: Successfully logged out from other devices
+  /auth/logout-other-devices:
+    post:
+      summary: Logout from other devices
+      description: Logs out the user from all sessions except the current one by invalidating all other refresh tokens. Requires a valid refresh token.
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ApiResponse"
-            example:
-              success: true
-              message: Logged out from other devices successfully
-      "400":
-        description: Invalid or missing refresh token
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            example:
-              success: false
-              message: Refresh token is required
-      "401":
-        description: Unauthorized - Invalid or expired token
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            example:
-              success: false
-              message: Invalid refresh token
-      "500":
-        description: Internal server error
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            example:
-              success: false
-              message: Failed to logout from other devices
+              $ref: "#/components/schemas/LogoutInput"
+      responses:
+        "200":
+          description: Successfully logged out from other devices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Logged out from other devices successfully
+        "400":
+          description: Invalid or missing refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Refresh token is required
+        "401":
+          description: Unauthorized - Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Invalid refresh token
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Failed to logout from other devices
 
-/auth/logout-all-devices:
-  post:
-    summary: Logout from all devices
-    description: Logs out the user from all sessions, including the current one, by invalidating all refresh tokens and clearing authentication cookies. Requires a valid refresh token.
-    tags:
-      - Authentication
-    security:
-      - BearerAuth: []
-      - CookieAuth: []
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/LogoutInput"
-    responses:
-      "200":
-        description: Successfully logged out from all devices
+  /auth/logout-all-devices:
+    post:
+      summary: Logout from all devices
+      description: Logs out the user from all sessions, including the current one, by invalidating all refresh tokens and clearing authentication cookies. Requires a valid refresh token.
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ApiResponse"
-            example:
-              success: true
-              message: Logged out from all devices successfully
-      "400":
-        description: Invalid or missing refresh token
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            example:
-              success: false
-              message: Refresh token is required
-      "401":
-        description: Unauthorized - Invalid or expired token
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            example:
-              success: false
-              message: Invalid refresh token
-      "500":
-        description: Internal server error
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            example:
-              success: false
-              message: Failed to logout from all devices
+              $ref: "#/components/schemas/LogoutInput"
+      responses:
+        "200":
+          description: Successfully logged out from all devices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Logged out from all devices successfully
+        "400":
+          description: Invalid or missing refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Refresh token is required
+        "401":
+          description: Unauthorized - Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Invalid refresh token
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Failed to logout from all devices
 
   /auth/refresh-token:
     post:
@@ -2084,10 +2232,14 @@ paths:
             schema:
               type: object
               properties:
-                full_name:
+                first_name:
                   type: string
                   minLength: 2
-                  example: "Asikur Rahman"
+                  example: "Asikur"
+                last_name:
+                  type: string
+                  minLength: 2
+                  example: "Rahman"
                 date_of_birth:
                   type: string
                   format: date
@@ -2818,6 +2970,1240 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiResponse"
 
+  /flights:
+    get:
+      summary: Get all flights with filtering and pagination
+      tags:
+        - Flights
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          example: 20
+        - name: from
+          in: query
+          schema:
+            type: string
+          example: "LHR"
+        - name: to
+          in: query
+          schema:
+            type: string
+          example: "JFK"
+        - name: departure_date
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-01"
+        - name: return_date
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-15"
+        - name: airline
+          in: query
+          schema:
+            type: string
+          example: "British Airways"
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+          example: 300
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+          example: 1000
+        - name: seat_class
+          in: query
+          schema:
+            type: string
+          example: "Economy"
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: "departure_time"
+          example: "departure_time"
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "asc"
+          example: "asc"
+      responses:
+        "200":
+          description: Flights retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    post:
+      summary: Create a new flight
+      tags:
+        - Flights
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - flight_number
+                - airline
+                - departure_time
+                - arrival_time
+                - from_airport
+                - to_airport
+                - price
+                - seat_class
+              properties:
+                flight_number:
+                  type: string
+                  example: "BA123"
+                airline:
+                  type: string
+                  example: "British Airways"
+                departure_time:
+                  type: string
+                  format: date-time
+                  example: "2023-12-01T10:00:00Z"
+                arrival_time:
+                  type: string
+                  format: date-time
+                  example: "2023-12-01T14:00:00Z"
+                from_airport:
+                  type: string
+                  example: "LHR"
+                to_airport:
+                  type: string
+                  example: "JFK"
+                price:
+                  type: number
+                  format: float
+                  example: 499.99
+                seat_class:
+                  type: string
+                  example: "Economy"
+      responses:
+        "201":
+          description: Flight created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "403":
+          description: Forbidden - Not authorized to create flights
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /flights/search:
+    get:
+      summary: Search flights with advanced filtering
+      tags:
+        - Flights
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          example: 20
+        - name: from
+          in: query
+          schema:
+            type: string
+          example: "LHR"
+        - name: to
+          in: query
+          schema:
+            type: string
+          example: "JFK"
+        - name: departure_date
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-01"
+        - name: return_date
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-15"
+        - name: passengers
+          in: query
+          schema:
+            type: integer
+          example: 2
+        - name: seat_class
+          in: query
+          schema:
+            type: string
+          example: "Economy"
+        - name: airline
+          in: query
+          schema:
+            type: string
+          example: "British Airways"
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+          example: 300
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+          example: 1000
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: "price"
+          example: "price"
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "asc"
+          example: "asc"
+      responses:
+        "200":
+          description: Flights search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /flights/{id}:
+    get:
+      summary: Get flight by ID
+      tags:
+        - Flights
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        "200":
+          description: Flight retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    patch:
+      summary: Update flight
+      tags:
+        - Flights
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                flight_number:
+                  type: string
+                  example: "BA456"
+                airline:
+                  type: string
+                  example: "British Airways"
+                departure_time:
+                  type: string
+                  format: date-time
+                  example: "2023-12-01T11:00:00Z"
+                arrival_time:
+                  type: string
+                  format: date-time
+                  example: "2023-12-01T15:00:00Z"
+                from_airport:
+                  type: string
+                  example: "LHR"
+                to_airport:
+                  type: string
+                  example: "JFK"
+                price:
+                  type: number
+                  format: float
+                  example: 549.99
+                seat_class:
+                  type: string
+                  example: "Business"
+      responses:
+        "200":
+          description: Flight updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "403":
+          description: Forbidden - Not authorized to update flights
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    delete:
+      summary: Delete flight
+      tags:
+        - Flights
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        "200":
+          description: Flight deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Cannot delete flight with active bookings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "403":
+          description: Forbidden - Not authorized to delete flights
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /flights/{id}/availability:
+    get:
+      summary: Get flight availability
+      tags:
+        - Flights
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        "200":
+          description: Flight availability retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /hotels:
+    get:
+      summary: Get all hotels with filtering and pagination
+      tags:
+        - Hotels
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          example: 20
+        - name: location
+          in: query
+          schema:
+            type: string
+          example: "paris"
+        - name: rating
+          in: query
+          schema:
+            type: number
+          example: 4
+        - name: amenities
+          in: query
+          schema:
+            type: string
+          example: "wifi,pool,gym"
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+          example: 100
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+          example: 500
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: "created_at"
+          example: "price_per_night"
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "desc"
+          example: "asc"
+      responses:
+        "200":
+          description: Hotels retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    post:
+      summary: Create a new hotel
+      tags:
+        - Hotels
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - address
+                - rating
+                - price_per_night
+                - amenities
+                - available_rooms
+              properties:
+                name:
+                  type: string
+                  example: "Marriott Hotel"
+                address:
+                  type: string
+                  example: "123 Main St, New York, NY"
+                rating:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 5
+                  example: 4.5
+                price_per_night:
+                  type: number
+                  format: float
+                  example: 199.99
+                amenities:
+                  type: array
+                  items:
+                    type: string
+                  example: ["WiFi", "Pool", "Gym", "Restaurant"]
+                available_rooms:
+                  type: integer
+                  example: 10
+      responses:
+        "201":
+          description: Hotel created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "403":
+          description: Forbidden - Not authorized to create hotels
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /hotels/search:
+    get:
+      summary: Search hotels with advanced filtering
+      tags:
+        - Hotels
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          example: 20
+        - name: location
+          in: query
+          schema:
+            type: string
+          example: "paris"
+        - name: check_in
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-01"
+        - name: check_out
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-05"
+        - name: guests
+          in: query
+          schema:
+            type: integer
+          example: 2
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+          example: 100
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+          example: 500
+        - name: amenities
+          in: query
+          schema:
+            type: string
+          example: "wifi,pool,gym"
+        - name: rating
+          in: query
+          schema:
+            type: number
+          example: 4
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: "price_per_night"
+          example: "price_per_night"
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "asc"
+          example: "asc"
+      responses:
+        "200":
+          description: Hotels search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /hotels/{id}:
+    get:
+      summary: Get hotel by ID
+      tags:
+        - Hotels
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        "200":
+          description: Hotel retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Hotel not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    patch:
+      summary: Update hotel
+      tags:
+        - Hotels
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Marriott Grand Hotel"
+                address:
+                  type: string
+                  example: "123 Main St, New York, NY"
+                rating:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 5
+                  example: 4.8
+                price_per_night:
+                  type: number
+                  format: float
+                  example: 249.99
+                amenities:
+                  type: array
+                  items:
+                    type: string
+                  example: ["WiFi", "Pool", "Gym", "Restaurant", "Spa"]
+                available_rooms:
+                  type: integer
+                  example: 15
+      responses:
+        "200":
+          description: Hotel updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "403":
+          description: Forbidden - Not authorized to update hotels
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Hotel not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    delete:
+      summary: Delete hotel
+      tags:
+        - Hotels
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        "200":
+          description: Hotel deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Cannot delete hotel with active bookings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "403":
+          description: Forbidden - Not authorized to delete hotels
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Hotel not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /hotels/{id}/availability:
+    get:
+      summary: Get hotel availability
+      tags:
+        - Hotels
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2023-12-01"
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2023-12-05"
+      responses:
+        "200":
+          description: Hotel availability retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Missing required parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Hotel not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /trips:
+    get:
+      summary: Get all trips with filtering and pagination
+      tags:
+        - Trips
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          example: 20
+        - name: trip_type
+          in: query
+          schema:
+            type: string
+            enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
+          example: "ADVENTURE"
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-01"
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-15"
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+          example: 500
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+          example: 2000
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: "created_at"
+          example: "price"
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "desc"
+          example: "asc"
+      responses:
+        "200":
+          description: Trips retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    post:
+      summary: Create a new trip
+      tags:
+        - Trips
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - trip_name
+                - description
+                - start_date
+                - end_date
+                - trip_type
+                - price
+              properties:
+                trip_name:
+                  type: string
+                  example: "European Adventure"
+                description:
+                  type: string
+                  example: "Explore the best of Europe with our comprehensive tour package."
+                start_date:
+                  type: string
+                  format: date
+                  example: "2023-12-01"
+                end_date:
+                  type: string
+                  format: date
+                  example: "2023-12-15"
+                trip_type:
+                  type: string
+                  enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
+                  example: "ADVENTURE"
+                price:
+                  type: number
+                  format: float
+                  example: 1999.99
+      responses:
+        "201":
+          description: Trip created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /trips/search:
+    get:
+      summary: Search trips with advanced filtering
+      tags:
+        - Trips
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          example: 20
+        - name: trip_type
+          in: query
+          schema:
+            type: string
+            enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
+          example: "ADVENTURE"
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-01"
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-15"
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+          example: 500
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+          example: 2000
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: "price"
+          example: "price"
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "asc"
+          example: "asc"
+      responses:
+        "200":
+          description: Trips search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /trips/{id}:
+    get:
+      summary: Get trip by ID
+      tags:
+        - Trips
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        "200":
+          description: Trip retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    patch:
+      summary: Update trip
+      tags:
+        - Trips
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                trip_name:
+                  type: string
+                  example: "European Adventure Deluxe"
+                description:
+                  type: string
+                  example: "Explore the best of Europe with our comprehensive luxury tour package."
+                start_date:
+                  type: string
+                  format: date
+                  example: "2023-12-05"
+                end_date:
+                  type: string
+                  format: date
+                  example: "2023-12-20"
+                trip_type:
+                  type: string
+                  enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
+                  example: "LEISURE"
+                price:
+                  type: number
+                  format: float
+                  example: 2499.99
+      responses:
+        "200":
+          description: Trip updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "403":
+          description: Forbidden - Not the trip owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    delete:
+      summary: Delete trip
+      tags:
+        - Trips
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        "200":
+          description: Trip deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Cannot delete trip with active bookings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "403":
+          description: Forbidden - Not the trip owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /trips/{id}/availability:
+    get:
+      summary: Get trip availability
+      tags:
+        - Trips
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2023-12-01"
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2023-12-15"
+      responses:
+        "200":
+          description: Trip availability retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Missing required parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
   /notifications:
     get:
       summary: Get user notifications with pagination
@@ -3050,275 +4436,6 @@ paths:
                 $ref: "#/components/schemas/ApiResponse"
         "403":
           description: Forbidden - Not an admin
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-  /hotels:
-    get:
-      summary: Get all hotels
-      tags:
-        - Hotels
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-          example: 1
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 20
-          example: 20
-        - name: search
-          in: query
-          schema:
-            type: string
-          example: "marriott"
-        - name: destination
-          in: query
-          schema:
-            type: string
-          example: "paris"
-        - name: minPrice
-          in: query
-          schema:
-            type: number
-          example: 100
-        - name: maxPrice
-          in: query
-          schema:
-            type: number
-          example: 500
-        - name: rating
-          in: query
-          schema:
-            type: number
-          example: 4
-        - name: amenities
-          in: query
-          schema:
-            type: string
-          example: "wifi,pool,gym"
-      responses:
-        "200":
-          description: Hotels retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-  /hotels/{id}:
-    get:
-      summary: Get hotel by ID
-      tags:
-        - Hotels
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-      responses:
-        "200":
-          description: Hotel retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
-          description: Hotel not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-  /flights:
-    get:
-      summary: Get all flights
-      tags:
-        - Flights
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-          example: 1
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 20
-          example: 20
-        - name: from
-          in: query
-          schema:
-            type: string
-          example: "LHR"
-        - name: to
-          in: query
-          schema:
-            type: string
-          example: "JFK"
-        - name: departureDate
-          in: query
-          schema:
-            type: string
-            format: date
-          example: "2023-12-01"
-        - name: returnDate
-          in: query
-          schema:
-            type: string
-            format: date
-          example: "2023-12-15"
-        - name: airline
-          in: query
-          schema:
-            type: string
-          example: "British Airways"
-        - name: minPrice
-          in: query
-          schema:
-            type: number
-          example: 300
-        - name: maxPrice
-          in: query
-          schema:
-            type: number
-          example: 1000
-        - name: seatClass
-          in: query
-          schema:
-            type: string
-          example: "Economy"
-      responses:
-        "200":
-          description: Flights retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-  /flights/{id}:
-    get:
-      summary: Get flight by ID
-      tags:
-        - Flights
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-      responses:
-        "200":
-          description: Flight retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
-          description: Flight not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-  /trips:
-    get:
-      summary: Get all trips
-      tags:
-        - Trips
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-          example: 1
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 20
-          example: 20
-        - name: search
-          in: query
-          schema:
-            type: string
-          example: "europe"
-        - name: destination
-          in: query
-          schema:
-            type: string
-          example: "paris"
-        - name: tripType
-          in: query
-          schema:
-            type: string
-            enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
-          example: "ADVENTURE"
-        - name: minPrice
-          in: query
-          schema:
-            type: number
-          example: 500
-        - name: maxPrice
-          in: query
-          schema:
-            type: number
-          example: 2000
-        - name: startDate
-          in: query
-          schema:
-            type: string
-            format: date
-          example: "2023-12-01"
-        - name: endDate
-          in: query
-          schema:
-            type: string
-            format: date
-          example: "2023-12-15"
-      responses:
-        "200":
-          description: Trips retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-  /trips/{id}:
-    get:
-      summary: Get trip by ID
-      tags:
-        - Trips
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-      responses:
-        "200":
-          description: Trip retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
-          description: Trip not found
           content:
             application/json:
               schema:
@@ -3737,6 +4854,7 @@ paths:
                 reason:
                   type: string
                   example: "Customer requested cancellation"
+             
                 amount:
                   type: number
                   format: float
@@ -3768,6 +4886,282 @@ paths:
                 $ref: "#/components/schemas/ApiResponse"
         "404":
           description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /reviews:
+    post:
+      summary: Create a review
+      tags:
+        - Reviews
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rating
+              properties:
+                hotel_id:
+                  type: string
+                  format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174000"
+                flight_id:
+                  type: string
+                  format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174001"
+                trip_id:
+                  type: string
+                  format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174002"
+                rating:
+                  type: number
+                  minimum: 1
+                  maximum: 5
+                  example: 4.5
+                comment:
+                  type: string
+                  example: "Great experience! Would definitely recommend."
+      responses:
+        "201":
+          description: Review created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    get:
+      summary: Get user reviews
+      tags:
+        - Reviews
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Reviews retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /reviews/{id}:
+    get:
+      summary: Get review by ID
+      tags:
+        - Reviews
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        "200":
+          description: Review retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    put:
+      summary: Update review
+      tags:
+        - Reviews
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: number
+                  minimum: 1
+                  maximum: 5
+                  example: 5
+                comment:
+                  type: string
+                  example: "Absolutely fantastic experience! Highly recommended."
+      responses:
+        "200":
+          description: Review updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "403":
+          description: Forbidden - Not the review owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    delete:
+      summary: Delete review
+      tags:
+        - Reviews
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        "200":
+          description: Review deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "403":
+          description: Forbidden - Not the review owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /service-providers/register:
+    post:
+      summary: Register as service provider
+      tags:
+        - Service Providers
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceProviderProfileInput"
+      responses:
+        "201":
+          description: Registered as service provider successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /travel-agencies/register:
+    post:
+      summary: Register as travel agency
+      tags:
+        - Travel Agencies
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TravelAgencyProfileInput"
+      responses:
+        "201":
+          description: Registered as travel agency successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -4191,150 +5585,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiResponse"
 
-  /reviews:
-    post:
-      summary: Create a review
-      tags:
-        - Reviews
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - rating
-              properties:
-                hotel_id:
-                  type: string
-                  format: uuid
-                  example: "123e4567-e89b-12d3-a456-426614174000"
-                flight_id:
-                  type: string
-                  format: uuid
-                  example: "123e4567-e89b-12d3-a456-426614174001"
-                trip_id:
-                  type: string
-                  format: uuid
-                  example: "123e4567-e89b-12d3-a456-426614174002"
-                rating:
-                  type: number
-                  minimum: 1
-                  maximum: 5
-                  example: 4.5
-                comment:
-                  type: string
-                  example: "Great experience! Would definitely recommend."
-      responses:
-        "201":
-          description: Review created successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
+  /admin/destinations:
     get:
-      summary: Get user reviews
+      summary: Get all destinations (Admin only)
       tags:
-        - Reviews
+        - Admin
       security:
         - BearerAuth: []
         - CookieAuth: []
       responses:
         "200":
-          description: Reviews retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-  /reviews/{id}:
-    get:
-      summary: Get review by ID
-      tags:
-        - Reviews
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-      responses:
-        "200":
-          description: Review retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
-          description: Review not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-    put:
-      summary: Update review
-      tags:
-        - Reviews
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                rating:
-                  type: number
-                  minimum: 1
-                  maximum: 5
-                  example: 5
-                comment:
-                  type: string
-                  example: "Absolutely fantastic experience! Highly recommended."
-      responses:
-        "200":
-          description: Review updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
-          description: Validation error
+          description: Destinations retrieved successfully
           content:
             application/json:
               schema:
@@ -4346,122 +5607,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiResponse"
         "403":
-          description: Forbidden - Not the review owner
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
-          description: Review not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-    delete:
-      summary: Delete review
-      tags:
-        - Reviews
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-      responses:
-        "200":
-          description: Review deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
-          description: Forbidden - Not the review owner
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
-          description: Review not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-  /service-providers/register:
-    post:
-      summary: Register as service provider
-      tags:
-        - Service Providers
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ServiceProviderProfileInput"
-      responses:
-        "201":
-          description: Registered as service provider successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-  /travel-agencies/register:
-    post:
-      summary: Register as travel agency
-      tags:
-        - Travel Agencies
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/TravelAgencyProfileInput"
-      responses:
-        "201":
-          description: Registered as travel agency successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "401":
-          description: Unauthorized
+          description: Forbidden - Not an admin
           content:
             application/json:
               schema:

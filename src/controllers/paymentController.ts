@@ -5,7 +5,7 @@ import type { CreatePaymentInput } from "../validators/paymentValidators"
 
 export class PaymentController {
   static processPayment = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const data = req.body as CreatePaymentInput
     const result = await PaymentService.processPayment(userId, data)
 
@@ -16,7 +16,7 @@ export class PaymentController {
   })
 
   static getPayments = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const payments = await PaymentService.getPaymentsByUser(userId)
 
     res.status(200).json({
@@ -26,7 +26,7 @@ export class PaymentController {
   })
 
   static getPaymentById = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const paymentId = req.params.id
     const payment = await PaymentService.getPaymentById(userId, paymentId)
 
@@ -37,7 +37,7 @@ export class PaymentController {
   })
 
   static refundPayment = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user!.id
+    const userId = req.currentUser.id
     const paymentId = req.params.id
     const result = await PaymentService.refundPayment(userId, paymentId)
 

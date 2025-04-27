@@ -1,63 +1,57 @@
 version: '3.8'
 
 services:
+  # API Service
   api:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: trippz-api
     restart: always
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
     depends_on:
       - postgres
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
-      - JWT_COOKIE_EXPIRES_IN=${JWT_COOKIE_EXPIRES_IN}
-      - EMAIL_FROM=${EMAIL_FROM}
-      - EMAIL_HOST=${EMAIL_HOST}
-      - EMAIL_PORT=${EMAIL_PORT}
-      - EMAIL_USERNAME=${EMAIL_USERNAME}
-      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
-      - RESEND_API_KEY=${RESEND_API_KEY}
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_REGION=${AWS_REGION}
-      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
-      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
-      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
-      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
-      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
-      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
-      - MAINTENANCE_MODE=${MAINTENANCE_MODE:-false}
+      - redis
     volumes:
+      - ./uploads:/app/uploads
       - ./logs:/app/logs
     networks:
       - trippz-network
-    command: >
-      sh -c "prisma migrate deploy && node dist/index.js"
 
+  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
     container_name: trippz-postgres
     restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-trippz}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - trippz-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
+  # Redis for caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: trippz-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - trippz-network
+
+  # Nginx for reverse proxy and static file serving
   nginx:
     image: nginx:alpine
     container_name: trippz-nginx
@@ -68,15 +62,16 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/ssl:/etc/nginx/ssl
-      - ./nginx/logs:/var/log/nginx
+      - ./uploads:/var/www/uploads
     depends_on:
       - api
     networks:
       - trippz-network
 
+volumes:
+  postgres-data:
+  redis-data:
+
 networks:
   trippz-network:
     driver: bridge
-
-volumes:
-  postgres-data:

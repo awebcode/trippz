@@ -1,63 +1,37 @@
-import express from "express";
-import { FlightController } from "../controllers/flightController";
-import { protect } from "../middleware/authMiddleware";
-import { validateRequest } from "../middleware/validateRequest";
-import {
-  createFlightSchema,
-  updateFlightSchema,
-  searchFlightsSchema,
-} from "../validators/flightValidators";
-import { idParamSchema } from "../validators/commonValidators";
+import express from "express"
+import { FlightController } from "../controllers/flightController"
+import { protect, restrictTo } from "../middleware/authMiddleware"
+import { validateRequest } from "../middleware/validateRequest"
+import { createFlightSchema, updateFlightSchema } from "../validators/flightValidators"
+import { idParamSchema } from "../validators/commonValidators"
 
-const router = express.Router();
+const router = express.Router()
 
 // Public routes
-router.get(
-  "/",
-  validateRequest({ query: searchFlightsSchema }),
-  FlightController.getFlights
-);
+router.get("/", FlightController.getAllFlights)
+router.get("/search", FlightController.searchFlights)
+router.get("/:id", validateRequest({ params: idParamSchema }), FlightController.getFlightById)
+router.get("/:id/availability", validateRequest({ params: idParamSchema }), FlightController.getFlightAvailability)
 
-router.get(
-  "/search",
-  validateRequest({ query: searchFlightsSchema }),
-  FlightController.searchFlights
-);
-
-router.get(
-  "/:id",
-  validateRequest({ params: idParamSchema }),
-  FlightController.getFlightById
-);
-
-router.get(
-  "/:id/availability",
-  validateRequest({ params: idParamSchema }),
-  FlightController.getFlightAvailability
-);
-
-// Protected routes
-router.use(protect);
-
+// Protected routes for admins and service providers
+router.use(protect)
 router.post(
   "/",
+  restrictTo("ADMIN", "SERVICE_PROVIDER"),
   validateRequest({ body: createFlightSchema }),
-  FlightController.createFlight
-);
-
+  FlightController.createFlight,
+)
 router.patch(
   "/:id",
-  validateRequest({
-    params: idParamSchema,
-    body: updateFlightSchema,
-  }),
-  FlightController.updateFlight
-);
-
+  restrictTo("ADMIN", "SERVICE_PROVIDER"),
+  validateRequest({ params: idParamSchema, body: updateFlightSchema }),
+  FlightController.updateFlight,
+)
 router.delete(
   "/:id",
+  restrictTo("ADMIN", "SERVICE_PROVIDER"),
   validateRequest({ params: idParamSchema }),
-  FlightController.deleteFlight
-);
+  FlightController.deleteFlight,
+)
 
-export { router as flightRoutes };
+export { router as flightRoutes }

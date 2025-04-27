@@ -359,9 +359,9 @@ export class BookingService {
           data.guests || booking.guests || 0,
         )
       } else if (data.guests && booking.booking_type === "FLIGHT" && booking.flight_id) {
-        totalPrice = await this.calculateFlightPrice(booking.flight_id, data.guests || booking.guests|| 0)
+        totalPrice = await this.calculateFlightPrice(booking.flight_id, data.guests || booking.guests || 0)
       } else if (data.guests && booking.booking_type === "TRIP" && booking.trip_id) {
-        totalPrice = await this.calculateTripPrice(booking.trip_id, data.guests || booking.guests|| 0)
+        totalPrice = await this.calculateTripPrice(booking.trip_id, data.guests || booking.guests || 0)
       }
 
       // Update booking
@@ -423,22 +423,19 @@ export class BookingService {
           },
           Payment: true,
         },
-      });
+      })
 
       if (!booking) {
-        throw new AppError("Booking not found", 404);
+        throw new AppError("Booking not found", 404)
       }
 
       if (booking.user_id !== userId) {
-        throw new AppError("You are not authorized to cancel this booking", 403);
+        throw new AppError("You are not authorized to cancel this booking", 403)
       }
 
       // Check if booking can be canceled
       if (booking.status === "COMPLETED" || booking.status === "CANCELED") {
-        throw new AppError(
-          `Cannot cancel a ${booking.status.toLowerCase()} booking`,
-          400
-        );
+        throw new AppError(`Cannot cancel a ${booking.status.toLowerCase()} booking`, 400)
       }
 
       // If payment exists and is successful, initiate refund
@@ -452,7 +449,7 @@ export class BookingService {
             data: {
               payment_status: "REFUNDED",
             },
-          });
+          })
 
           // Record the refund transaction
           await prisma.transaction.create({
@@ -462,7 +459,7 @@ export class BookingService {
               amount: payment.amount_paid,
               status: "SUCCESS",
             },
-          });
+          })
         }
       }
 
@@ -472,21 +469,18 @@ export class BookingService {
         data: {
           status: "CANCELED",
         },
-      });
+      })
 
       // Send cancellation notification
-      await EmailService.sendBookingCancellation(booking.user.email, booking);
+      await EmailService.sendBookingCancellation(booking.user.email, booking)
       if (booking.user.phone_number) {
-        await SmsService.sendBookingCancellationSms(
-          booking.user.phone_number,
-          booking.id
-        );
+        await SmsService.sendBookingCancellationSms(booking.user.phone_number, booking.id)
       }
 
       return {
         message: "Booking canceled successfully",
         booking: canceledBooking,
-      };
+      }
     } catch (error) {
       logger.error(`Error in cancelBooking: ${error}`)
       if (error instanceof AppError) {
@@ -627,10 +621,9 @@ export class BookingService {
               },
             ],
           },
-         
         },
       },
-    });
+    })
 
     if (!trip) {
       throw new AppError("Trip not found", 404)
