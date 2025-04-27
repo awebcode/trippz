@@ -58,19 +58,14 @@ app.use("/api/v1", apiLimiter)
 // Middleware
 app.use(helmet()) // Security headers
 // Middleware
-app.use(
-  compression({
-    // Explicitly disable Brotli compression
-    level: 6, // Compression level for gzip (1-9, default: 6)
-    filter: (req, res) => {
-      // Only use gzip or deflate, avoid Brotli
-      if (req.headers["accept-encoding"]?.includes("br")) {
-        return false; // Skip compression if client requests Brotli
-      }
-      return compression.filter(req, res); // Use default filter for gzip/deflate
-    },
-  })
-);
+// Middleware
+app.use((req, res, next) => {
+  // Skip compression for Swagger UI
+  if (req.path.startsWith("/api/v1/api-docs")) {
+    return next();
+  }
+  return compression()(req, res, next);
+});
 app.use(morgan("dev")) // HTTP request logger
 app.use(express.json({ limit: "10mb" })) // Parse JSON request body
 app.use(express.urlencoded({ extended: true, limit: "10mb" })) // Parse URL-encoded request body
