@@ -23,7 +23,7 @@ info:
 servers:
   - url: https://api.travelapp.com/api/v1
     description: Production server
-  - url: https://trippz-api-v1-render.app/api/v1
+  - url: https://trippz.onrender.com/api/v1
     description: Testing server
   - url: http://localhost:5000/api/v1
     description: Development server

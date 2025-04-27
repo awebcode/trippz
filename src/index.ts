@@ -59,13 +59,13 @@ app.use("/api/v1", apiLimiter)
 app.use(helmet()) // Security headers
 // Middleware
 // Middleware
-app.use((req, res, next) => {
-  // Skip compression for Swagger UI
-  if (req.path.startsWith("/api/v1/api-docs")) {
-    return next();
-  }
-  return compression()(req, res, next);
-});
+// app.use((req, res, next) => {
+//   // Skip compression for Swagger UI
+//   if (req.path.startsWith("/api/v1/api-docs")) {
+//     return next();
+//   }
+//   return compression()(req, res, next);
+// });
 app.use(morgan("dev")) // HTTP request logger
 app.use(express.json({ limit: "10mb" })) // Parse JSON request body
 app.use(express.urlencoded({ extended: true, limit: "10mb" })) // Parse URL-encoded request body
