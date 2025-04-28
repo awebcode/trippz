@@ -875,11 +875,9 @@ export class AuthService {
 
   static async setAuthCookies(res: Response, accessToken: string, refreshToken: string): Promise<void> {
     try {
-      const accessTokenExpiry = Number.parseInt(config.jwt.accessExpiresIn.toString()) * 1000
-      const refreshTokenExpiry = Number.parseInt(config.jwt.refreshExpiresIn.toString()) * 1000
-
-      res.cookie("accessToken", accessToken, getCookieOptions(accessTokenExpiry))
-      res.cookie("refreshToken", refreshToken, getCookieOptions(refreshTokenExpiry))
+     
+      res.cookie("accessToken", accessToken, getCookieOptions())
+      res.cookie("refreshToken", refreshToken, getCookieOptions())
     } catch (error) {
       logger.error(`Failed to set auth cookies: ${error}`)
       throw new AppError("Failed to set auth cookies", 500)

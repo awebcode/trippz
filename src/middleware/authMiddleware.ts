@@ -23,16 +23,17 @@ declare global {
 
 // Cookie options
 export const getCookieOptions = (expires?: number) => {
+  const maxAge = expires || 30 * 24 * 60 * 60 * 1000;
+  console.log("Cookie maxAge:", maxAge);
   const isProduction = config.server.nodeEnv === "production";
   return {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? ("strict" as const) : ("lax" as const),
-    maxAge: expires || 30 * 24 * 60 * 60 * 1000, // 30 days
+    maxAge,
     path: "/",
   };
 };
-
 /**
  * Auth Middleware
  * - Verifies access token from cookies or Authorization header
