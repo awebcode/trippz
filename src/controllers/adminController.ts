@@ -91,7 +91,7 @@ export class AdminController {
 
   // Content Management
   static getAllDestinations = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const query = req.query
+    const query = req.validatedQuery as unknown as AnalyticsQuery;
     const destinations = await AdminService.getAllDestinations(query)
 
     res.status(200).json({

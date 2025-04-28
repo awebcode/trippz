@@ -46,7 +46,11 @@ router.get("/settings", AdminController.getSystemSettings)
 router.put("/settings", validateRequest({ body: systemSettingsSchema }), AdminController.updateSystemSettings)
 
 // Content management - Destinations
-router.get("/destinations", AdminController.getAllDestinations)
+router.get(
+  "/destinations",
+  validateRequest({ query: userQuerySchema }),
+  AdminController.getAllDestinations
+);
 
 router.post(
   "/destinations",
