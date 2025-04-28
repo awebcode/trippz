@@ -61,9 +61,9 @@ app.use(helmet()) // Security headers
 // Middleware
 app.use((req, res, next) => {
   // Skip compression for Swagger UI
-  // if (req.path.startsWith("/api/v1/api-docs")) {
-  //   return next();
-  // }
+  if (req.path.startsWith("/api/v1/api-docs")) {
+    return next();
+  }
   return compression()(req, res, next);
 });
 app.use(morgan("dev")) // HTTP request logger
