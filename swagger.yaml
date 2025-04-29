@@ -21,10 +21,12 @@ info:
     email: support@trippz.com
 
 servers:
-  - url: https://api.travelapp.com/api/v1
-    description: Production server
   - url: https://trippz.onrender.com/api/v1
     description: Testing server
+    
+  - url: https://api.travelapp.com/api/v1
+    description: Production server
+  
   - url: http://localhost:5000/api/v1
     description: Development server
 
@@ -3030,6 +3032,36 @@ paths:
           schema:
             type: string
           example: "Economy"
+        - name: direct_flights_only
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_wifi
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_entertainment
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_power_outlets
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: meal_service
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: min_baggage_allowance
+          in: query
+          schema:
+            type: integer
+          example: 2
         - name: sortBy
           in: query
           schema:
@@ -3063,44 +3095,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - flight_number
-                - airline
-                - departure_time
-                - arrival_time
-                - from_airport
-                - to_airport
-                - price
-                - seat_class
-              properties:
-                flight_number:
-                  type: string
-                  example: "BA123"
-                airline:
-                  type: string
-                  example: "British Airways"
-                departure_time:
-                  type: string
-                  format: date-time
-                  example: "2023-12-01T10:00:00Z"
-                arrival_time:
-                  type: string
-                  format: date-time
-                  example: "2023-12-01T14:00:00Z"
-                from_airport:
-                  type: string
-                  example: "LHR"
-                to_airport:
-                  type: string
-                  example: "JFK"
-                price:
-                  type: number
-                  format: float
-                  example: 499.99
-                seat_class:
-                  type: string
-                  example: "Economy"
+              $ref: "#/components/schemas/CreateFlightInput"
       responses:
         "201":
           description: Flight created successfully
@@ -3113,19 +3108,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Forbidden - Not authorized to create flights
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
 
   /flights/search:
     get:
@@ -3192,6 +3187,36 @@ paths:
           schema:
             type: number
           example: 1000
+        - name: direct_flights_only
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_wifi
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_entertainment
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_power_outlets
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: meal_service
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: min_baggage_allowance
+          in: query
+          schema:
+            type: integer
+          example: 2
         - name: sortBy
           in: query
           schema:
@@ -3212,6 +3237,106 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiResponse"
+
+  /flights/custom-search:
+    get:
+      summary: Custom flight search with advanced parameters
+      tags:
+        - Flights
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          example: 20
+        - name: layover_max_hours
+          in: query
+          schema:
+            type: integer
+          example: 3
+        - name: preferred_airlines
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          explode: true
+          example: ["British Airways", "Lufthansa"]
+        - name: exclude_airlines
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          explode: true
+          example: ["Budget Air"]
+        - name: departure_time_start
+          in: query
+          schema:
+            type: string
+            format: date-time
+          example: "2023-12-01T06:00:00Z"
+        - name: departure_time_end
+          in: query
+          schema:
+            type: string
+            format: date-time
+          example: "2023-12-01T12:00:00Z"
+        - name: arrival_time_start
+          in: query
+          schema:
+            type: string
+            format: date-time
+          example: "2023-12-01T14:00:00Z"
+        - name: arrival_time_end
+          in: query
+          schema:
+            type: string
+            format: date-time
+          example: "2023-12-01T20:00:00Z"
+        - name: price_range
+          in: query
+          schema:
+            type: string
+          example: "300-800"
+        - name: duration_max_minutes
+          in: query
+          schema:
+            type: integer
+          example: 480
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: "departure_time"
+          example: "departure_time"
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "asc"
+          example: "asc"
+      responses:
+        "200":
+          description: Custom flight search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid search parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /flights/{id}:
     get:
@@ -3238,7 +3363,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
 
     patch:
       summary: Update flight
@@ -3260,35 +3385,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                flight_number:
-                  type: string
-                  example: "BA456"
-                airline:
-                  type: string
-                  example: "British Airways"
-                departure_time:
-                  type: string
-                  format: date-time
-                  example: "2023-12-01T11:00:00Z"
-                arrival_time:
-                  type: string
-                  format: date-time
-                  example: "2023-12-01T15:00:00Z"
-                from_airport:
-                  type: string
-                  example: "LHR"
-                to_airport:
-                  type: string
-                  example: "JFK"
-                price:
-                  type: number
-                  format: float
-                  example: 549.99
-                seat_class:
-                  type: string
-                  example: "Business"
+              $ref: "#/components/schemas/UpdateFlightInput"
       responses:
         "200":
           description: Flight updated successfully
@@ -3301,25 +3398,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Forbidden - Not authorized to update flights
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Flight not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
 
     delete:
       summary: Delete flight
@@ -3348,29 +3445,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Forbidden - Not authorized to delete flights
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Flight not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
 
   /flights/{id}/availability:
     get:
-      summary: Get flight availability
+      summary: Check flight availability
       tags:
         - Flights
       parameters:
@@ -3381,6 +3478,19 @@ paths:
             type: string
             format: uuid
           example: "123e4567-e89b-12d3-a456-426614174000"
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-01"
+        - name: passengers
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 2
       responses:
         "200":
           description: Flight availability retrieved successfully
@@ -3393,7 +3503,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
 
   /hotels:
     get:
@@ -3417,17 +3527,39 @@ paths:
           in: query
           schema:
             type: string
-          example: "paris"
-        - name: rating
-          in: query
-          schema:
-            type: number
-          example: 4
-        - name: amenities
+          example: "New York"
+        - name: city
           in: query
           schema:
             type: string
-          example: "wifi,pool,gym"
+          example: "New York"
+        - name: country
+          in: query
+          schema:
+            type: string
+          example: "USA"
+        - name: check_in
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-01"
+        - name: check_out
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2023-12-05"
+        - name: guests
+          in: query
+          schema:
+            type: integer
+          example: 2
+        - name: rooms
+          in: query
+          schema:
+            type: integer
+          example: 1
         - name: minPrice
           in: query
           schema:
@@ -3438,6 +3570,84 @@ paths:
           schema:
             type: number
           example: 500
+        - name: rating
+          in: query
+          schema:
+            type: number
+          example: 4
+        - name: amenities
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          explode: true
+          example: ["WiFi", "Pool", "Gym"]
+        - name: has_free_cancellation
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_breakfast_included
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_parking
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_pool
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_gym
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_restaurant
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_room_service
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_spa
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_wifi
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_air_conditioning
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: is_pet_friendly
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: is_family_friendly
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: distance_from_center
+          in: query
+          schema:
+            type: number
+          example: 2
         - name: sortBy
           in: query
           schema:
@@ -3471,39 +3681,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - name
-                - address
-                - rating
-                - price_per_night
-                - amenities
-                - available_rooms
-              properties:
-                name:
-                  type: string
-                  example: "Marriott Hotel"
-                address:
-                  type: string
-                  example: "123 Main St, New York, NY"
-                rating:
-                  type: number
-                  format: float
-                  minimum: 0
-                  maximum: 5
-                  example: 4.5
-                price_per_night:
-                  type: number
-                  format: float
-                  example: 199.99
-                amenities:
-                  type: array
-                  items:
-                    type: string
-                  example: ["WiFi", "Pool", "Gym", "Restaurant"]
-                available_rooms:
-                  type: integer
-                  example: 10
+              $ref: "#/components/schemas/CreateHotelInput"
       responses:
         "201":
           description: Hotel created successfully
@@ -3516,19 +3694,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Forbidden - Not authorized to create hotels
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
 
   /hotels/search:
     get:
@@ -3552,7 +3730,17 @@ paths:
           in: query
           schema:
             type: string
-          example: "paris"
+          example: "New York"
+        - name: city
+          in: query
+          schema:
+            type: string
+          example: "New York"
+        - name: country
+          in: query
+          schema:
+            type: string
+          example: "USA"
         - name: check_in
           in: query
           schema:
@@ -3570,6 +3758,11 @@ paths:
           schema:
             type: integer
           example: 2
+        - name: rooms
+          in: query
+          schema:
+            type: integer
+          example: 1
         - name: minPrice
           in: query
           schema:
@@ -3580,16 +3773,84 @@ paths:
           schema:
             type: number
           example: 500
-        - name: amenities
-          in: query
-          schema:
-            type: string
-          example: "wifi,pool,gym"
         - name: rating
           in: query
           schema:
             type: number
           example: 4
+        - name: amenities
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          explode: true
+          example: ["WiFi", "Pool", "Gym"]
+        - name: has_free_cancellation
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_breakfast_included
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_parking
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_pool
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_gym
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_restaurant
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_room_service
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_spa
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_wifi
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: has_air_conditioning
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: is_pet_friendly
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: is_family_friendly
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: distance_from_center
+          in: query
+          schema:
+            type: number
+          example: 2
         - name: sortBy
           in: query
           schema:
@@ -3610,6 +3871,108 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiResponse"
+
+  /hotels/custom-search:
+    get:
+      summary: Custom hotel search with advanced parameters
+      tags:
+        - Hotels
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          example: 20
+        - name: nearby_attractions
+          in: query
+          schema:
+            type: string
+          example: "Times Square"
+        - name: nearby_landmarks
+          in: query
+          schema:
+            type: string
+          example: "Central Park"
+        - name: nearby_restaurants
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: nearby_shopping
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: nearby_public_transport
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: distance_radius
+          in: query
+          schema:
+            type: number
+          example: 5
+        - name: property_type
+          in: query
+          schema:
+            type: string
+          example: "Resort"
+        - name: star_rating
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          example: 5
+        - name: guest_rating_min
+          in: query
+          schema:
+            type: number
+            minimum: 0
+            maximum: 5
+          example: 4.5
+        - name: room_types
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          explode: true
+          example: ["Suite", "Deluxe"]
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: "rating"
+          example: "rating"
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "desc"
+          example: "desc"
+      responses:
+        "200":
+          description: Custom hotel search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid search parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /hotels/{id}:
     get:
@@ -3636,7 +3999,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
 
     patch:
       summary: Update hotel
@@ -3658,32 +4021,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: "Marriott Grand Hotel"
-                address:
-                  type: string
-                  example: "123 Main St, New York, NY"
-                rating:
-                  type: number
-                  format: float
-                  minimum: 0
-                  maximum: 5
-                  example: 4.8
-                price_per_night:
-                  type: number
-                  format: float
-                  example: 249.99
-                amenities:
-                  type: array
-                  items:
-                    type: string
-                  example: ["WiFi", "Pool", "Gym", "Restaurant", "Spa"]
-                available_rooms:
-                  type: integer
-                  example: 15
+              $ref: "#/components/schemas/UpdateHotelInput"
       responses:
         "200":
           description: Hotel updated successfully
@@ -3696,25 +4034,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Forbidden - Not authorized to update hotels
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Hotel not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
 
     delete:
       summary: Delete hotel
@@ -3743,29 +4081,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Forbidden - Not authorized to delete hotels
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Hotel not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
 
   /hotels/{id}/availability:
     get:
-      summary: Get hotel availability
+      summary: Check hotel availability
       tags:
         - Hotels
       parameters:
@@ -3776,29 +4114,37 @@ paths:
             type: string
             format: uuid
           example: "123e4567-e89b-12d3-a456-426614174000"
-        - name: startDate
+        - name: check_in
           in: query
           required: true
           schema:
             type: string
             format: date
           example: "2023-12-01"
-        - name: endDate
+        - name: check_out
           in: query
           required: true
           schema:
             type: string
             format: date
           example: "2023-12-05"
+        - name: guests
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 2
+        - name: rooms
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
       responses:
         "200":
           description: Hotel availability retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
-          description: Missing required parameters
           content:
             application/json:
               schema:
@@ -3808,7 +4154,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
 
   /trips:
     get:
@@ -3834,6 +4180,11 @@ paths:
             type: string
             enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
           example: "ADVENTURE"
+        - name: destination
+          in: query
+          schema:
+            type: string
+          example: "Paris"
         - name: start_date
           in: query
           schema:
@@ -3845,23 +4196,88 @@ paths:
           schema:
             type: string
             format: date
-          example: "2023-12-15"
+          example: "2023-12-31"
         - name: minPrice
           in: query
           schema:
             type: number
-          example: 500
+          example: 1000
         - name: maxPrice
           in: query
           schema:
             type: number
-          example: 2000
+          example: 3000
+        - name: duration_min
+          in: query
+          schema:
+            type: integer
+          example: 7
+        - name: duration_max
+          in: query
+          schema:
+            type: integer
+          example: 14
+        - name: min_rating
+          in: query
+          schema:
+            type: number
+          example: 4
+        - name: max_participants
+          in: query
+          schema:
+            type: integer
+          example: 20
+        - name: has_availability
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: includes_flight
+          in: query
+          schema:
+            type: boolean
+          example: false
+        - name: includes_hotel
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: includes_activities
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: includes_meals
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: is_guided
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: is_family_friendly
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: is_accessible
+          in: query
+          schema:
+            type: boolean
+          example: false
+        - name: has_free_cancellation
+          in: query
+          schema:
+            type: boolean
+          example: true
         - name: sortBy
           in: query
           schema:
             type: string
             default: "created_at"
-          example: "price"
+          example: "start_date"
         - name: sortOrder
           in: query
           schema:
@@ -3889,37 +4305,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - trip_name
-                - description
-                - start_date
-                - end_date
-                - trip_type
-                - price
-              properties:
-                trip_name:
-                  type: string
-                  example: "European Adventure"
-                description:
-                  type: string
-                  example: "Explore the best of Europe with our comprehensive tour package."
-                start_date:
-                  type: string
-                  format: date
-                  example: "2023-12-01"
-                end_date:
-                  type: string
-                  format: date
-                  example: "2023-12-15"
-                trip_type:
-                  type: string
-                  enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
-                  example: "ADVENTURE"
-                price:
-                  type: number
-                  format: float
-                  example: 1999.99
+              $ref: "#/components/schemas/CreateTripInput"
       responses:
         "201":
           description: Trip created successfully
@@ -3932,13 +4318,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
 
   /trips/search:
     get:
@@ -3964,6 +4350,11 @@ paths:
             type: string
             enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
           example: "ADVENTURE"
+        - name: destination
+          in: query
+          schema:
+            type: string
+          example: "Paris"
         - name: start_date
           in: query
           schema:
@@ -3975,17 +4366,82 @@ paths:
           schema:
             type: string
             format: date
-          example: "2023-12-15"
+          example: "2023-12-31"
         - name: minPrice
           in: query
           schema:
             type: number
-          example: 500
+          example: 1000
         - name: maxPrice
           in: query
           schema:
             type: number
-          example: 2000
+          example: 3000
+        - name: duration_min
+          in: query
+          schema:
+            type: integer
+          example: 7
+        - name: duration_max
+          in: query
+          schema:
+            type: integer
+          example: 14
+        - name: min_rating
+          in: query
+          schema:
+            type: number
+          example: 4
+        - name: max_participants
+          in: query
+          schema:
+            type: integer
+          example: 20
+        - name: has_availability
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: includes_flight
+          in: query
+          schema:
+            type: boolean
+          example: false
+        - name: includes_hotel
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: includes_activities
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: includes_meals
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: is_guided
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: is_family_friendly
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: is_accessible
+          in: query
+          schema:
+            type: boolean
+          example: false
+        - name: has_free_cancellation
+          in: query
+          schema:
+            type: boolean
+          example: true
         - name: sortBy
           in: query
           schema:
@@ -4007,157 +4463,112 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiResponse"
 
-  /trips/{id}:
+  /trips/custom-search:
     get:
-      summary: Get trip by ID
+      summary: Custom trip search with advanced parameters
       tags:
         - Trips
       parameters:
-        - name: id
-          in: path
-          required: true
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          example: 20
+        - name: destinations
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          explode: true
+          example: ["Paris", "Rome", "Barcelona"]
+        - name: activities
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          explode: true
+          example: ["Hiking", "Museum Tours", "Wine Tasting"]
+        - name: themes
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          explode: true
+          example: ["Cultural", "Historical", "Culinary"]
+        - name: travel_styles
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          explode: true
+          example: ["Luxury", "Budget", "Family"]
+        - name: group_size
+          in: query
+          schema:
+            type: integer
+          example: 10
+        - name: price_range
+          in: query
           schema:
             type: string
-            format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-      responses:
-        "200":
-          description: Trip retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
-          description: Trip not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-    patch:
-      summary: Update trip
-      tags:
-        - Trips
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
+          example: "1000-3000"
+        - name: duration_range
+          in: query
           schema:
             type: string
-            format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                trip_name:
-                  type: string
-                  example: "European Adventure Deluxe"
-                description:
-                  type: string
-                  example: "Explore the best of Europe with our comprehensive luxury tour package."
-                start_date:
-                  type: string
-                  format: date
-                  example: "2023-12-05"
-                end_date:
-                  type: string
-                  format: date
-                  example: "2023-12-20"
-                trip_type:
-                  type: string
-                  enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
-                  example: "LEISURE"
-                price:
-                  type: number
-                  format: float
-                  example: 2499.99
+          example: "7-14"
+        - name: departure_months
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          explode: true
+          example: ["June", "July", "August"]
+        - name: difficulty_level
+          in: query
+          schema:
+            type: string
+          example: "Moderate"
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: "price"
+          example: "price"
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "asc"
+          example: "asc"
       responses:
         "200":
-          description: Trip updated successfully
+          description: Custom trip search results retrieved successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiResponse"
         "400":
-          description: Validation error
+          description: Invalid search parameters
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
-          description: Forbidden - Not the trip owner
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
-          description: Trip not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ErrorResponse"
 
-    delete:
-      summary: Delete trip
-      tags:
-        - Trips
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-      responses:
-        "200":
-          description: Trip deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
-          description: Cannot delete trip with active bookings
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "403":
-          description: Forbidden - Not the trip owner
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "404":
-          description: Trip not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-  /trips/{id}/availability:
+  /trips/{id}:
     get:
       summary: Get trip availability
       tags:
