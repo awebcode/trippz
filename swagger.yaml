@@ -2,20 +2,33 @@ openapi: 3.0.0
 info:
   title: Trippz API
   description: |
-    API documentation for Trippz travel application.
+    API documentation for the Trippz travel application.
 
     This API provides endpoints for managing users, destinations, bookings, payments, and more.
 
     ## Authentication
-    Most endpoints require authentication using JWT Bearer tokens. To authenticate:
-    1. Register or login to get your access token
-    2. Include the token in the Authorization header: `Bearer YOUR_TOKEN`
+    Most endpoints require authentication using JSON Web Tokens (JWT).
 
-    ## Rate Limiting
-    API requests are limited to 100 requests per minute per IP address.
+    ### How to Authenticate:
+    1. Register or log in to obtain your access and refresh tokens.
+    2. Include your access token in requests using **one of the following methods**:
+      - **Custom Headers:**  
+        `x-trippz-access-token: <access-token>`  
+        `x-trippz-refresh-token: <refresh-token>`
+      - **Cookies (for web clients):**  
+        Send `accessToken` and `refreshToken` cookies.  
+        (Use `withCredentials: true` when making requests from browsers.)
 
-    ## Versioning
-    Current API version: v1
+    ### Important Notes:
+    - Access tokens authenticate user requests.
+    - Refresh tokens are used to silently renew expired sessions without re-login.
+    - Tokens sent via custom headers are preferred for mobile clients and APIs.
+    - Tokens sent via cookies are primarily used for web browser sessions.
+
+     ## Rate Limiting
+     All API requests are limited to **100 requests per minute** per IP address.
+
+  ## Versioning
   version: 1.0.0
   contact:
     email: support@trippz.com
@@ -32,34 +45,33 @@ servers:
 
 components:
   securitySchemes:
-    components:
-      TrippzHeaderAuth:
-        type: apiKey
-        in: header
-        name: x-trippz-access-token
-        description: |
-          Access token in custom header.
+    TrippzHeaderAuth:
+      type: apiKey
+      in: header
+      name: x-trippz-access-token
+      description: |
+        Access token in custom header.
 
-      TrippzRefreshTokenHeader:
-        type: apiKey
-        in: header
-        name: x-trippz-refresh-token
-        description: |
-          Refresh token in custom header. Used to obtain a  access token when expired.
+    TrippzRefreshTokenHeader:
+      type: apiKey
+      in: header
+      name: x-trippz-refresh-token
+      description: |
+        Refresh token in custom header. Used to obtain a  access token when expired.
 
-      CookieAccessToken:
-        type: apiKey
-        in: cookie
-        name: accessToken
-        description: |
-          Access token stored in cookie. Fallback for browser clients. Automatically refreshed when  expired if refresh token is present.
+    CookieAccessToken:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: |
+        Access token stored in cookie. Fallback for browser clients. Automatically refreshed when  expired if refresh token is present.
 
-      CookieRefreshToken:
-        type: apiKey
-        in: cookie
-        name: refreshToken
-        description: |
-          Refresh token stored in cookie. Used to obtain a new access token when expired.
+    CookieRefreshToken:
+      type: apiKey
+      in: cookie
+      name: refreshToken
+      description: |
+        Refresh token stored in cookie. Used to obtain a new access token when expired.
 
   schemas:
     User:
