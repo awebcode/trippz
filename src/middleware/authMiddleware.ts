@@ -43,108 +43,85 @@ export const getCookieOptions = (expires?: number) => {
  */
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // 1) Get token from authorization header or cookies
-    let accessToken: string | undefined;
-    let refreshToken: string | undefined;
-
-    // Check for access token in Authorization header (Bearer token)
+    // 1) Try getting tokens from custom headers
+    let accessToken = req.headers["x-trippz-access-token"] as string | undefined;
+    let refreshToken = req.headers["x-trippz-refresh-token"] as string | undefined;
     if (
+      config.auth.useCookieAuth!==true &&
       req.headers.authorization &&
       req.headers.authorization.startsWith("Bearer") &&
-      req.headers.authorization.split(" ")[1].includes("ey")
+      req.headers.authorization.split(" ")[1].startsWith("ey")
     ) {
-      accessToken = req.headers.authorization.split(" ")[1];
+      return next(
+        new AppError("Use X-TRIPPZ headers only, not Authorization header.", 400)
+      );
     }
-    // Check for access token in cookies
-    else if (req.cookies?.accessToken) {
+
+    // 2) Fallback: Try getting tokens from cookies if headers are missing
+    if (!accessToken && req.cookies?.accessToken) {
       accessToken = req.cookies.accessToken;
     }
-    // Check for access token in request body (mobile apps sometimes send it here)
-    else if (req.body?.accessToken) {
-      accessToken = req.body.accessToken;
-    }
-
-    // Check for refresh token in cookies
-    if (req.cookies?.refreshToken) {
+    if (!refreshToken && req.cookies?.refreshToken) {
       refreshToken = req.cookies.refreshToken;
     }
-    // Check for refresh token in request body
-    else if (req.body?.refreshToken) {
-      refreshToken = req.body.refreshToken;
-    }
 
-    // Early exit if no tokens are provided
     if (!accessToken && !refreshToken) {
       return next(new AppError("Authentication required. Please login.", 401));
     }
 
-    // 2) Try verifying access token
+    // 3) Try verifying access token
     if (accessToken) {
       try {
         const decoded = await AuthService.VerifyJwtToken(accessToken, config.jwt.secret);
 
-        // Validate session
         const session = await AuthService.validateSession(decoded.id, decoded.session_id);
 
-        // Fetch user
         const user = await prisma.user.findUnique({
           where: { id: decoded.id },
           select: { id: true, role: true, email: true, first_name: true },
         });
 
         if (!user) {
-          return next(
-            new AppError("The user belonging to this token no longer exists.", 401)
-          );
+          return next(new AppError("User not found.", 401));
         }
 
-        // Attach user and session info to request
         req.currentUser = user;
         req.sessionId = session.id;
-        req.user = user; // For backward compatibility
-        if (!req.validatedQuery) {
-          req.validatedQuery = req.query;
-        }
+        req.user = user;
+        if (!req.validatedQuery) req.validatedQuery = req.query;
 
         return next();
       } catch (error) {
-        // Only proceed to refresh logic if token is expired
         if (!(error instanceof AppError) || error.message !== "Token expired") {
           logger.error(`Access token validation error: ${error}`);
           return next(error);
         }
-        logger.info("Access token expired, attempting to refresh");
+        logger.info("Access token expired, attempting refresh");
       }
     }
 
-    // 3) Handle refresh token if access token is missing or expired
+    // 4) If no valid access token, use refresh token
     if (!refreshToken) {
       return next(new AppError("Authentication failed. Please login again.", 401));
     }
 
     try {
-      // Verify refresh token
       const decoded = await AuthService.VerifyJwtToken(
         refreshToken,
         config.jwt.refreshSecret
       );
 
-      // Validate session
       const session = await AuthService.validateSession(decoded.id, decoded.session_id);
 
-      // Fetch user
       const user = await prisma.user.findUnique({
         where: { id: decoded.id },
         select: { id: true, role: true, email: true, first_name: true },
       });
 
       if (!user) {
-        return next(
-          new AppError("The user belonging to this token no longer exists.", 401)
-        );
+        return next(new AppError("User not found.", 401));
       }
 
-      // Generate new tokens
       const newPayload = {
         id: decoded.id,
         first_name: user.first_name,
@@ -156,32 +133,27 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
       const newAccessToken = await AuthService.generateAccessToken(newPayload);
       const newRefreshToken = await AuthService.generateRefreshToken(newPayload);
 
-      // Set new cookies if cookie auth is enabled
+      // 5) Send back refreshed tokens
       if (config.auth.useCookieAuth) {
         await AuthService.setAuthCookies(res, newAccessToken, newRefreshToken);
       }
 
-      // Add tokens to response header for non-cookie auth (mobile apps)
-      res.setHeader("X-Access-Token", newAccessToken);
-      res.setHeader("X-Refresh-Token", newRefreshToken);
+      res.setHeader("X-TRIPPZ-ACCESS-TOKEN", newAccessToken);
+      res.setHeader("X-TRIPPZ-REFRESH-TOKEN", newRefreshToken);
 
-      // Attach user and session info to request
       req.currentUser = user;
       req.sessionId = session.id;
-      req.user = user; // For backward compatibility
-      if (!req.validatedQuery) {
-        req.validatedQuery = req.query;
-      }
+      req.user = user;
+      if (!req.validatedQuery) req.validatedQuery = req.query;
+
       return next();
     } catch (error) {
       logger.error(`Refresh token validation error: ${error}`);
-      return next(new AppError("Your session has expired. Please log in again.", 401));
+      return next(new AppError("Session expired. Please login again.", 401));
     }
   } catch (error) {
-    logger.error(`Authentication error: ${error}`);
-    return next(
-      error instanceof AppError ? error : new AppError("Authentication failed", 401)
-    );
+    logger.error(`Authentication middleware error: ${error}`);
+    return next(new AppError("Authentication failed", 401));
   }
 };
 

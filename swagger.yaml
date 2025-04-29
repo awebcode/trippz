@@ -23,23 +23,43 @@ info:
 servers:
   - url: https://trippz.onrender.com/api/v1
     description: Testing server
-    
+
   - url: https://api.travelapp.com/api/v1
     description: Production server
-  
+
   - url: http://localhost:5000/api/v1
     description: Development server
 
 components:
   securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-    CookieAuth:
-      type: apiKey
-      in: cookie
-      name: accessToken
+    components:
+      TrippzHeaderAuth:
+        type: apiKey
+        in: header
+        name: x-trippz-access-token
+        description: |
+          Access token in custom header.
+
+      TrippzRefreshTokenHeader:
+        type: apiKey
+        in: header
+        name: x-trippz-refresh-token
+        description: |
+          Refresh token in custom header. Used to obtain a  access token when expired.
+
+      CookieAccessToken:
+        type: apiKey
+        in: cookie
+        name: accessToken
+        description: |
+          Access token stored in cookie. Fallback for browser clients. Automatically refreshed when  expired if refresh token is present.
+
+      CookieRefreshToken:
+        type: apiKey
+        in: cookie
+        name: refreshToken
+        description: |
+          Refresh token stored in cookie. Used to obtain a new access token when expired.
 
   schemas:
     User:
@@ -240,114 +260,927 @@ components:
           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
           default: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
-    Hotel:
+    CreateFlightInput:
+      type: object
+      required:
+        - flight_number
+        - airline
+        - departure_time
+        - arrival_time
+        - from_airport
+        - to_airport
+        - price
+        - seat_class
+      properties:
+        flight_number:
+          type: string
+          example: "BA123"
+          default: "BA123"
+        airline:
+          type: string
+          example: "British Airways"
+          default: "British Airways"
+        departure_time:
+          type: string
+          format: date-time
+          example: "2023-12-01T10:00:00Z"
+          default: "2023-12-01T10:00:00Z"
+        arrival_time:
+          type: string
+          format: date-time
+          example: "2023-12-01T14:00:00Z"
+          default: "2023-12-01T14:00:00Z"
+        from_airport:
+          type: string
+          example: "LHR"
+          default: "LHR"
+        to_airport:
+          type: string
+          example: "JFK"
+          default: "JFK"
+        price:
+          type: number
+          format: float
+          example: 499.99
+          default: 499.99
+        seat_class:
+          type: string
+          example: "Economy"
+          default: "Economy"
+        available_seats:
+          type: integer
+          example: 150
+          default: 150
+        aircraft_type:
+          type: string
+          example: "Boeing 787"
+          default: "Boeing 787"
+        has_wifi:
+          type: boolean
+          example: true
+          default: true
+        has_entertainment:
+          type: boolean
+          example: true
+          default: true
+        has_power_outlets:
+          type: boolean
+          example: true
+          default: true
+        meal_service:
+          type: boolean
+          example: true
+          default: true
+        baggage_allowance:
+          type: integer
+          example: 2
+          default: 2
+        cancellation_policy:
+          type: string
+          example: "Free cancellation up to 24 hours before departure"
+          default: "Free cancellation up to 24 hours before departure"
+
+    UpdateFlightInput:
       type: object
       properties:
-        id:
+        flight_number:
+          type: string
+          example: "BA456"
+          default: "BA456"
+        airline:
+          type: string
+          example: "British Airways"
+          default: "British Airways"
+        departure_time:
+          type: string
+          format: date-time
+          example: "2023-12-01T11:00:00Z"
+          default: "2023-12-01T11:00:00Z"
+        arrival_time:
+          type: string
+          format: date-time
+          example: "2023-12-01T15:00:00Z"
+          default: "2023-12-01T15:00:00Z"
+        from_airport:
+          type: string
+          example: "LHR"
+          default: "LHR"
+        to_airport:
+          type: string
+          example: "JFK"
+          default: "JFK"
+        price:
+          type: number
+          format: float
+          example: 549.99
+          default: 549.99
+        seat_class:
+          type: string
+          example: "Business"
+          default: "Business"
+        available_seats:
+          type: integer
+          example: 50
+          default: 50
+        aircraft_type:
+          type: string
+          example: "Airbus A380"
+          default: "Airbus A380"
+        has_wifi:
+          type: boolean
+          example: true
+          default: true
+        has_entertainment:
+          type: boolean
+          example: true
+          default: true
+        has_power_outlets:
+          type: boolean
+          example: true
+          default: true
+        meal_service:
+          type: boolean
+          example: true
+          default: true
+        baggage_allowance:
+          type: integer
+          example: 3
+          default: 3
+        cancellation_policy:
+          type: string
+          example: "Free cancellation up to 48 hours before departure"
+          default: "Free cancellation up to 48 hours before departure"
+
+    SearchFlightsInput:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+          default: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 20
+          default: 20
+        sortBy:
+          type: string
+          enum: [departure_time, arrival_time, price, airline, created_at]
+          example: "departure_time"
+          default: "departure_time"
+        sortOrder:
+          type: string
+          enum: [asc, desc]
+          example: "asc"
+          default: "asc"
+        from:
+          type: string
+          example: "LHR"
+        to:
+          type: string
+          example: "JFK"
+        departure_date:
+          type: string
+          format: date
+          example: "2023-12-01"
+        return_date:
+          type: string
+          format: date
+          example: "2023-12-15"
+        seat_class:
+          type: string
+          example: "Economy"
+        minPrice:
+          type: number
+          example: 300
+        maxPrice:
+          type: number
+          example: 1000
+        airline:
+          type: string
+          example: "British Airways"
+        direct_flights_only:
+          type: boolean
+          example: true
+        has_wifi:
+          type: boolean
+          example: true
+        has_entertainment:
+          type: boolean
+          example: true
+        has_power_outlets:
+          type: boolean
+          example: true
+        meal_service:
+          type: boolean
+          example: true
+        min_baggage_allowance:
+          type: integer
+          example: 2
+
+    FlightAvailabilityInput:
+      type: object
+      required:
+        - flight_id
+      properties:
+        flight_id:
           type: string
           format: uuid
           example: "123e4567-e89b-12d3-a456-426614174000"
+        date:
+          type: string
+          format: date
+          example: "2023-12-01"
+        passengers:
+          type: integer
+          minimum: 1
+          example: 2
+          default: 1
+
+    CreateHotelInput:
+      type: object
+      required:
+        - name
+        - address
+        - price_per_night
+        - available_rooms
+      properties:
         name:
           type: string
           example: "Marriott Hotel"
+          default: "Marriott Hotel"
         address:
           type: string
           example: "123 Main St, New York, NY"
+          default: "123 Main St, New York, NY"
         rating:
           type: number
           format: float
           minimum: 0
           maximum: 5
           example: 4.5
+          default: 4.5
         price_per_night:
           type: number
           format: float
           example: 199.99
+          default: 199.99
         amenities:
           type: array
           items:
             type: string
           example: ["WiFi", "Pool", "Gym", "Restaurant"]
+          default: ["WiFi", "Pool", "Gym", "Restaurant"]
         available_rooms:
           type: integer
           example: 10
-        images:
-          type: array
-          items:
-            $ref: "#/components/schemas/Image"
-        created_at:
+          default: 10
+        description:
           type: string
-          format: date-time
-          example: "2023-01-01T00:00:00Z"
-        updated_at:
+          example: "A luxurious hotel in the heart of the city with modern amenities and exceptional service."
+          default: "A luxurious hotel in the heart of the city with modern amenities and exceptional service."
+        check_in_time:
           type: string
-          format: date-time
-          example: "2023-01-01T00:00:00Z"
+          example: "14:00"
+          default: "14:00"
+        check_out_time:
+          type: string
+          example: "12:00"
+          default: "12:00"
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+              format: float
+              example: 40.7128
+            longitude:
+              type: number
+              format: float
+              example: -74.0060
+            city:
+              type: string
+              example: "New York"
+            country:
+              type: string
+              example: "USA"
+        property_type:
+          type: string
+          example: "Hotel"
+          default: "Hotel"
+        has_free_cancellation:
+          type: boolean
+          example: true
+          default: true
+        has_breakfast_included:
+          type: boolean
+          example: true
+          default: true
+        has_parking:
+          type: boolean
+          example: true
+          default: true
+        has_pool:
+          type: boolean
+          example: true
+          default: true
+        has_gym:
+          type: boolean
+          example: true
+          default: true
+        has_restaurant:
+          type: boolean
+          example: true
+          default: true
+        has_room_service:
+          type: boolean
+          example: true
+          default: true
+        has_spa:
+          type: boolean
+          example: true
+          default: true
+        has_wifi:
+          type: boolean
+          example: true
+          default: true
+        has_air_conditioning:
+          type: boolean
+          example: true
+          default: true
+        is_pet_friendly:
+          type: boolean
+          example: false
+          default: false
+        is_family_friendly:
+          type: boolean
+          example: true
+          default: true
 
-    Flight:
+    UpdateHotelInput:
       type: object
       properties:
-        id:
+        name:
           type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-        flight_number:
+          example: "Marriott Grand Hotel"
+          default: "Marriott Grand Hotel"
+        address:
           type: string
-          example: "BA123"
-        airline:
-          type: string
-          example: "British Airways"
-        departure_time:
-          type: string
-          format: date-time
-          example: "2023-12-01T10:00:00Z"
-        arrival_time:
-          type: string
-          format: date-time
-          example: "2023-12-01T14:00:00Z"
-        from_airport:
-          type: string
-          example: "LHR"
-        to_airport:
-          type: string
-          example: "JFK"
-        price:
+          example: "123 Main St, New York, NY"
+          default: "123 Main St, New York, NY"
+        rating:
           type: number
           format: float
-          example: 499.99
-        seat_class:
-          type: string
-          example: "Economy"
-        images:
+          minimum: 0
+          maximum: 5
+          example: 4.8
+          default: 4.8
+        price_per_night:
+          type: number
+          format: float
+          example: 249.99
+          default: 249.99
+        amenities:
           type: array
           items:
-            $ref: "#/components/schemas/Image"
-        created_at:
+            type: string
+          example: ["WiFi", "Pool", "Gym", "Restaurant", "Spa"]
+          default: ["WiFi", "Pool", "Gym", "Restaurant", "Spa"]
+        available_rooms:
+          type: integer
+          example: 15
+          default: 15
+        description:
           type: string
-          format: date-time
-          example: "2023-01-01T00:00:00Z"
-        updated_at:
+          example: "A luxurious hotel in the heart of the city with modern amenities and exceptional service."
+          default: "A luxurious hotel in the heart of the city with modern amenities and exceptional service."
+        check_in_time:
           type: string
-          format: date-time
-          example: "2023-01-01T00:00:00Z"
+          example: "15:00"
+          default: "15:00"
+        check_out_time:
+          type: string
+          example: "11:00"
+          default: "11:00"
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+              format: float
+              example: 40.7128
+            longitude:
+              type: number
+              format: float
+              example: -74.0060
+            city:
+              type: string
+              example: "New York"
+            country:
+              type: string
+              example: "USA"
+        property_type:
+          type: string
+          example: "Resort"
+          default: "Resort"
+        has_free_cancellation:
+          type: boolean
+          example: true
+          default: true
+        has_breakfast_included:
+          type: boolean
+          example: true
+          default: true
+        has_parking:
+          type: boolean
+          example: true
+          default: true
+        has_pool:
+          type: boolean
+          example: true
+          default: true
+        has_gym:
+          type: boolean
+          example: true
+          default: true
+        has_restaurant:
+          type: boolean
+          example: true
+          default: true
+        has_room_service:
+          type: boolean
+          example: true
+          default: true
+        has_spa:
+          type: boolean
+          example: true
+          default: true
+        has_wifi:
+          type: boolean
+          example: true
+          default: true
+        has_air_conditioning:
+          type: boolean
+          example: true
+          default: true
+        is_pet_friendly:
+          type: boolean
+          example: true
+          default: true
+        is_family_friendly:
+          type: boolean
+          example: true
+          default: true
 
-    Trip:
+    SearchHotelsInput:
       type: object
       properties:
-        id:
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+          default: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 20
+          default: 20
+        sortBy:
+          type: string
+          enum: [created_at, price_per_night, rating, name]
+          example: "price_per_night"
+          default: "created_at"
+        sortOrder:
+          type: string
+          enum: [asc, desc]
+          example: "asc"
+          default: "desc"
+        location:
+          type: string
+          example: "New York"
+        city:
+          type: string
+          example: "New York"
+        country:
+          type: string
+          example: "USA"
+        check_in:
+          type: string
+          format: date
+          example: "2023-12-01"
+        check_out:
+          type: string
+          format: date
+          example: "2023-12-05"
+        guests:
+          type: integer
+          minimum: 1
+          example: 2
+        rooms:
+          type: integer
+          minimum: 1
+          example: 1
+        minPrice:
+          type: number
+          example: 100
+        maxPrice:
+          type: number
+          example: 500
+        rating:
+          type: number
+          minimum: 0
+          maximum: 5
+          example: 4
+        amenities:
+          type: array
+          items:
+            type: string
+          example: ["WiFi", "Pool", "Gym"]
+        distance_from_center:
+          type: number
+          example: 2
+        has_free_cancellation:
+          type: boolean
+          example: true
+        has_breakfast_included:
+          type: boolean
+          example: true
+        has_parking:
+          type: boolean
+          example: true
+        has_pool:
+          type: boolean
+          example: true
+        has_gym:
+          type: boolean
+          example: true
+        has_restaurant:
+          type: boolean
+          example: true
+        has_room_service:
+          type: boolean
+          example: true
+        has_spa:
+          type: boolean
+          example: true
+        has_wifi:
+          type: boolean
+          example: true
+        has_air_conditioning:
+          type: boolean
+          example: true
+        is_pet_friendly:
+          type: boolean
+          example: true
+        is_family_friendly:
+          type: boolean
+          example: true
+
+    HotelAvailabilityInput:
+      type: object
+      required:
+        - hotel_id
+        - check_in
+        - check_out
+      properties:
+        hotel_id:
           type: string
           format: uuid
           example: "123e4567-e89b-12d3-a456-426614174000"
-        user_id:
+        check_in:
           type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174001"
+          format: date
+          example: "2023-12-01"
+        check_out:
+          type: string
+          format: date
+          example: "2023-12-05"
+        guests:
+          type: integer
+          minimum: 1
+          example: 2
+          default: 1
+        rooms:
+          type: integer
+          minimum: 1
+          example: 1
+          default: 1
+
+    CreateTripInput:
+      type: object
+      required:
+        - trip_name
+        - description
+        - start_date
+        - end_date
+        - trip_type
+        - price
+      properties:
         trip_name:
           type: string
           example: "European Adventure"
+          default: "European Adventure"
         description:
           type: string
           example: "Explore the best of Europe with our comprehensive tour package."
+          default: "Explore the best of Europe with our comprehensive tour package."
+        start_date:
+          type: string
+          format: date
+          example: "2023-12-01"
+          default: "2023-12-01"
+        end_date:
+          type: string
+          format: date
+          example: "2023-12-15"
+          default: "2023-12-15"
+        trip_type:
+          type: string
+          enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
+          example: "ADVENTURE"
+          default: "ADVENTURE"
+        price:
+          type: number
+          format: float
+          example: 1999.99
+          default: 1999.99
+        max_participants:
+          type: integer
+          example: 20
+          default: 20
+        destination_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            [
+              "123e4567-e89b-12d3-a456-426614174000",
+              "123e4567-e89b-12d3-a456-426614174001",
+            ]
+        itinerary:
+          type: object
+          example:
+            {
+              "day1": "Arrival in Paris, welcome dinner",
+              "day2": "Eiffel Tower and Louvre Museum tour",
+              "day3": "Travel to Amsterdam by train",
+            }
+        inclusions:
+          type: array
+          items:
+            type: string
+          example:
+            [
+              "Accommodation",
+              "Breakfast",
+              "Local guides",
+              "Transportation between cities",
+            ]
+        exclusions:
+          type: array
+          items:
+            type: string
+          example: ["Flights to/from Europe", "Travel insurance", "Personal expenses"]
+        cancellation_policy:
+          type: string
+          example: "Full refund if cancelled 30 days before departure"
+        difficulty_level:
+          type: string
+          example: "Moderate"
+        is_guided:
+          type: boolean
+          example: true
+        is_family_friendly:
+          type: boolean
+          example: true
+        is_accessible:
+          type: boolean
+          example: false
+        includes_flight:
+          type: boolean
+          example: false
+        includes_hotel:
+          type: boolean
+          example: true
+        includes_activities:
+          type: boolean
+          example: true
+        includes_meals:
+          type: boolean
+          example: true
+        travel_style:
+          type: string
+          example: "Cultural"
+        theme:
+          type: string
+          example: "History & Culture"
+
+    UpdateTripInput:
+      type: object
+      properties:
+        trip_name:
+          type: string
+          example: "European Adventure Deluxe"
+          default: "European Adventure Deluxe"
+        description:
+          type: string
+          example: "Explore the best of Europe with our comprehensive luxury tour package."
+          default: "Explore the best of Europe with our comprehensive luxury tour package."
+        start_date:
+          type: string
+          format: date
+          example: "2023-12-05"
+          default: "2023-12-05"
+        end_date:
+          type: string
+          format: date
+          example: "2023-12-20"
+          default: "2023-12-20"
+        trip_type:
+          type: string
+          enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
+          example: "LEISURE"
+          default: "LEISURE"
+        price:
+          type: number
+          format: float
+          example: 2499.99
+          default: 2499.99
+        max_participants:
+          type: integer
+          example: 15
+          default: 15
+        destination_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            [
+              "123e4567-e89b-12d3-a456-426614174000",
+              "123e4567-e89b-12d3-a456-426614174001",
+              "123e4567-e89b-12d3-a456-426614174002",
+            ]
+        itinerary:
+          type: object
+          example:
+            {
+              "day1": "Arrival in Paris, luxury welcome dinner",
+              "day2": "Private Eiffel Tower and Louvre Museum tour",
+              "day3": "First-class train to Amsterdam",
+            }
+        inclusions:
+          type: array
+          items:
+            type: string
+          example:
+            [
+              "Luxury Accommodation",
+              "All Meals",
+              "Private guides",
+              "First-class transportation",
+            ]
+        exclusions:
+          type: array
+          items:
+            type: string
+          example: ["Flights to/from Europe", "Travel insurance", "Personal expenses"]
+        cancellation_policy:
+          type: string
+          example: "Full refund if cancelled 45 days before departure"
+        difficulty_level:
+          type: string
+          example: "Easy"
+        is_guided:
+          type: boolean
+          example: true
+        is_family_friendly:
+          type: boolean
+          example: true
+        is_accessible:
+          type: boolean
+          example: true
+        includes_flight:
+          type: boolean
+          example: false
+        includes_hotel:
+          type: boolean
+          example: true
+        includes_activities:
+          type: boolean
+          example: true
+        includes_meals:
+          type: boolean
+          example: true
+        travel_style:
+          type: string
+          example: "Luxury"
+        theme:
+          type: string
+          example: "History & Culture"
+
+    SearchTripsInput:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+          default: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 20
+          default: 20
+        sortBy:
+          type: string
+          enum: [created_at, start_date, end_date, price, trip_name]
+          example: "start_date"
+          default: "created_at"
+        sortOrder:
+          type: string
+          enum: [asc, desc]
+          example: "asc"
+          default: "desc"
+        trip_type:
+          type: string
+          enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
+          example: "ADVENTURE"
+        destination:
+          type: string
+          example: "Paris"
+        start_date:
+          type: string
+          format: date
+          example: "2023-12-01"
+        end_date:
+          type: string
+          format: date
+          example: "2023-12-31"
+        minPrice:
+          type: number
+          example: 1000
+        maxPrice:
+          type: number
+          example: 3000
+        duration_min:
+          type: integer
+          example: 7
+        duration_max:
+          type: integer
+          example: 14
+        min_rating:
+          type: number
+          minimum: 0
+          maximum: 5
+          example: 4
+        max_participants:
+          type: integer
+          example: 20
+        has_availability:
+          type: boolean
+          example: true
+        includes_flight:
+          type: boolean
+          example: false
+        includes_hotel:
+          type: boolean
+          example: true
+        includes_activities:
+          type: boolean
+          example: true
+        includes_meals:
+          type: boolean
+          example: true
+        is_guided:
+          type: boolean
+          example: true
+        is_family_friendly:
+          type: boolean
+          example: true
+        is_accessible:
+          type: boolean
+          example: false
+        has_free_cancellation:
+          type: boolean
+          example: true
+
+    TripAvailabilityInput:
+      type: object
+      required:
+        - trip_id
+        - start_date
+        - end_date
+      properties:
+        trip_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         start_date:
           type: string
           format: date
@@ -356,28 +1189,11 @@ components:
           type: string
           format: date
           example: "2023-12-15"
-        trip_type:
-          type: string
-          enum: [ADVENTURE, MEDICAL, BUSINESS, LEISURE]
-          example: "ADVENTURE"
-        price:
-          type: number
-          format: float
-          example: 1999.99
-        images:
-          type: array
-          items:
-            $ref: "#/components/schemas/Image"
-        user:
-          $ref: "#/components/schemas/User"
-        created_at:
-          type: string
-          format: date-time
-          example: "2023-01-01T00:00:00Z"
-        updated_at:
-          type: string
-          format: date-time
-          example: "2023-01-01T00:00:00Z"
+        participants:
+          type: integer
+          minimum: 1
+          example: 2
+          default: 1
 
     Booking:
       type: object
@@ -987,7 +1803,18 @@ components:
           example: "Your booking #12345 has been confirmed."
         notification_type:
           type: string
-          enum: [SYSTEM, BOOKING, PAYMENT, PROMOTIONAL, REMINDER, ALERT, NEW_BOOKING, TRIP_UPDATES, SPECIAL_OFFERS]
+          enum:
+            [
+              SYSTEM,
+              BOOKING,
+              PAYMENT,
+              PROMOTIONAL,
+              REMINDER,
+              ALERT,
+              NEW_BOOKING,
+              TRIP_UPDATES,
+              SPECIAL_OFFERS,
+            ]
           example: "BOOKING"
         entity_id:
           type: string
@@ -1509,7 +2336,18 @@ components:
           default: "Book now and get 20% off on your next trip!"
         type:
           type: string
-          enum: [SYSTEM, BOOKING, PAYMENT, PROMOTIONAL, REMINDER, ALERT, NEW_BOOKING, TRIP_UPDATES, SPECIAL_OFFERS]
+          enum:
+            [
+              SYSTEM,
+              BOOKING,
+              PAYMENT,
+              PROMOTIONAL,
+              REMINDER,
+              ALERT,
+              NEW_BOOKING,
+              TRIP_UPDATES,
+              SPECIAL_OFFERS,
+            ]
           example: "PROMOTIONAL"
           default: "PROMOTIONAL"
         channels:
@@ -1718,49 +2556,6 @@ components:
                         type: integer
                         example: 400
 
-    WeatherInfo:
-      type: object
-      properties:
-        destination:
-          type: string
-          example: "Paris"
-        current:
-          type: object
-          properties:
-            temperature:
-              type: number
-              example: 22
-            condition:
-              type: string
-              example: "Sunny"
-            humidity:
-              type: number
-              example: 65
-            wind_speed:
-              type: number
-              example: 10
-            icon:
-              type: string
-              example: "sun"
-        forecast:
-          type: array
-          items:
-            type: object
-            properties:
-              date:
-                type: string
-                format: date
-                example: "2023-06-01"
-              high:
-                type: number
-                example: 24
-              low:
-                type: number
-                example: 18
-              condition:
-                type: string
-                example: "Sunny"
-
     Attraction:
       type: object
       properties:
@@ -1913,8 +2708,11 @@ paths:
       tags:
         - Authentication
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -1967,8 +2765,11 @@ paths:
       tags:
         - Authentication
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -2020,8 +2821,11 @@ paths:
       tags:
         - Authentication
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -2073,8 +2877,11 @@ paths:
       tags:
         - Authentication
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -2204,8 +3011,11 @@ paths:
       tags:
         - Users
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       responses:
         "200":
           description: User profile retrieved successfully
@@ -2225,8 +3035,11 @@ paths:
       tags:
         - Users
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -2278,8 +3091,11 @@ paths:
       tags:
         - Users
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -2321,8 +3137,11 @@ paths:
       tags:
         - Users
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -2353,8 +3172,11 @@ paths:
       tags:
         - Users
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -2398,8 +3220,11 @@ paths:
       tags:
         - Users
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       responses:
         "200":
           description: Addresses retrieved successfully
@@ -2414,8 +3239,11 @@ paths:
       tags:
         - Users
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -2497,8 +3325,11 @@ paths:
       tags:
         - Destinations
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -2693,8 +3524,11 @@ paths:
       tags:
         - Destinations
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -2816,8 +3650,11 @@ paths:
       tags:
         - Destinations
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -2864,8 +3701,11 @@ paths:
       tags:
         - Destinations
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -3088,8 +3928,11 @@ paths:
       tags:
         - Flights
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -3370,8 +4213,11 @@ paths:
       tags:
         - Flights
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -3423,8 +4269,11 @@ paths:
       tags:
         - Flights
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -3674,8 +4523,11 @@ paths:
       tags:
         - Hotels
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -4006,8 +4858,11 @@ paths:
       tags:
         - Hotels
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -4059,8 +4914,11 @@ paths:
       tags:
         - Hotels
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -4298,8 +5156,11 @@ paths:
       tags:
         - Trips
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -4621,8 +5482,11 @@ paths:
       tags:
         - Notifications
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: page
           in: query
@@ -4656,8 +5520,11 @@ paths:
       tags:
         - Notifications
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -4698,8 +5565,11 @@ paths:
       tags:
         - Notifications
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       responses:
         "200":
           description: All notifications marked as read
@@ -4720,8 +5590,11 @@ paths:
       tags:
         - Notifications
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -4762,8 +5635,11 @@ paths:
       tags:
         - Notifications
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       responses:
         "200":
           description: Notification preferences retrieved successfully
@@ -4783,8 +5659,11 @@ paths:
       tags:
         - Notifications
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -4818,8 +5697,11 @@ paths:
         - Notifications
         - Admin
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -4858,8 +5740,11 @@ paths:
       tags:
         - Bookings
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -4891,8 +5776,11 @@ paths:
       tags:
         - Bookings
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: page
           in: query
@@ -4950,8 +5838,11 @@ paths:
       tags:
         - Bookings
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -4991,8 +5882,11 @@ paths:
       tags:
         - Bookings
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -5045,8 +5939,11 @@ paths:
       tags:
         - Bookings
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -5093,8 +5990,11 @@ paths:
       tags:
         - Payments
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -5162,8 +6062,11 @@ paths:
       tags:
         - Payments
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: page
           in: query
@@ -5203,8 +6106,11 @@ paths:
       tags:
         - Payments
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -5245,8 +6151,11 @@ paths:
       tags:
         - Payments
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -5265,7 +6174,7 @@ paths:
                 reason:
                   type: string
                   example: "Customer requested cancellation"
-             
+
                 amount:
                   type: number
                   format: float
@@ -5308,8 +6217,11 @@ paths:
       tags:
         - Reviews
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -5364,8 +6276,11 @@ paths:
       tags:
         - Reviews
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       responses:
         "200":
           description: Reviews retrieved successfully
@@ -5412,8 +6327,11 @@ paths:
       tags:
         - Reviews
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -5474,8 +6392,11 @@ paths:
       tags:
         - Reviews
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -5516,8 +6437,11 @@ paths:
       tags:
         - Service Providers
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -5550,8 +6474,11 @@ paths:
       tags:
         - Travel Agencies
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -5630,8 +6557,11 @@ paths:
       tags:
         - Admin
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       responses:
         "200":
           description: System settings retrieved successfully
@@ -5657,8 +6587,11 @@ paths:
       tags:
         - Admin
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       requestBody:
         required: true
         content:
@@ -5723,8 +6656,11 @@ paths:
       tags:
         - Admin
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       responses:
         "200":
           description: Statistics retrieved successfully
@@ -5751,8 +6687,11 @@ paths:
       tags:
         - Admin
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: period
           in: query
@@ -5799,8 +6738,11 @@ paths:
       tags:
         - Admin
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: page
           in: query
@@ -5864,8 +6806,11 @@ paths:
       tags:
         - Admin
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -5905,8 +6850,11 @@ paths:
       tags:
         - Admin
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -5947,8 +6895,11 @@ paths:
       tags:
         - Admin
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       parameters:
         - name: id
           in: path
@@ -6002,8 +6953,11 @@ paths:
       tags:
         - Admin
       security:
-        - BearerAuth: []
-        - CookieAuth: []
+        - TrippzHeaderAuth: []
+        - CookieAccessToken: []
+        - TrippzRefreshTokenHeader: []
+        - CookieRefreshToken: []
+
       responses:
         "200":
           description: Destinations retrieved successfully
