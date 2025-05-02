@@ -56,23 +56,23 @@ app.use("/api/v1", apiLimiter);
 
 // Middleware
 app.use(helmet()); // Security headers
-app.use(
-  compression({
-    threshold: 1024, // Only compress responses > 1KB
-    level: 6, // Moderate compression level
-    filter: (req, res) => {
-      // Skip compression for Swagger UI and binary content
-      if (req.path.startsWith("/api/v1/api-docs")) {
-        return false;
-      }
-      const contentType = res.getHeader("Content-Type") || "";
-      if (typeof contentType === "string" && /image|video|audio/.test(contentType)) {
-        return false;
-      }
-      return compression.filter(req, res);
-    },
-  })
-);
+// app.use(
+//   compression({
+//     threshold: 1024, // Only compress responses > 1KB
+//     level: 6, // Moderate compression level
+//     filter: (req, res) => {
+//       // Skip compression for Swagger UI and binary content
+//       if (req.path.startsWith("/api/v1/api-docs")) {
+//         return false;
+//       }
+//       const contentType = res.getHeader("Content-Type") || "";
+//       if (typeof contentType === "string" && /image|video|audio/.test(contentType)) {
+//         return false;
+//       }
+//       return compression.filter(req, res);
+//     },
+//   })
+// );
 app.use(morgan("dev")); // HTTP request logger
 app.use(express.json({ limit: "100mb" })); // Parse JSON request body
 app.use(express.urlencoded({ extended: true, limit: "100mb" })); // Parse URL-encoded request body
