@@ -237,21 +237,6 @@ components:
           example: "123456"
           default: "123456"
 
-    SocialLoginInput:
-      type: object
-      required:
-        - provider
-        - token
-      properties:
-        provider:
-          type: string
-          enum: [GOOGLE, FACEBOOK, APPLE]
-          example: "GOOGLE"
-        token:
-          type: string
-          example: "ya29.a0AfB_byC3..."
-          default: "ya29.a0AfB_byC3..."
-
     RefreshTokenInput:
       type: object
       required:
@@ -2740,31 +2725,6 @@ paths:
                 $ref: "#/components/schemas/ApiResponse"
         "400":
           description: Invalid or expired code
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-  /auth/social-login:
-    post:
-      summary: Social login
-      tags:
-        - Authentication
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SocialLoginInput"
-      responses:
-        "200":
-          description: Social login successful
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-        "400":
-          description: Invalid token
           content:
             application/json:
               schema:

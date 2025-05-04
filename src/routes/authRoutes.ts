@@ -8,7 +8,6 @@ import {
   resetPasswordSchema,
   verifyEmailSchema,
   verifyPhoneSchema,
-  socialLoginSchema,
 } from "../validators/authValidators"
 import passport from "passport"
 import { protect } from "../middleware/authMiddleware"
@@ -22,7 +21,6 @@ router.post("/forgot-password", validateRequest({ body: forgotPasswordSchema }),
 router.post("/reset-password", validateRequest({ body: resetPasswordSchema }), AuthController.resetPassword)
 router.post("/verify-email", validateRequest({ body: verifyEmailSchema }), AuthController.verifyEmail)
 router.post("/verify-phone", protect, validateRequest({ body: verifyPhoneSchema }), AuthController.verifyPhone)
-router.post("/social-login", validateRequest({ body: socialLoginSchema }), AuthController.socialLogin)
 router.post("/refresh-token", AuthController.refreshToken)
 
 // Protected logout routes

@@ -104,15 +104,7 @@ export const verifyPhoneSchema = z
   })
   .strict()
 
-export const socialLoginSchema = z
-  .object({
-    provider: z.enum(["GOOGLE", "FACEBOOK", "APPLE"], {
-      required_error: "Provider is required",
-      invalid_type_error: "Provider must be one of: GOOGLE, FACEBOOK, APPLE",
-    }),
-    token: z.string({ required_error: "Token is required" }),
-  })
-  .strict()
+
 
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
@@ -120,4 +112,3 @@ export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>
 export type VerifyPhoneInput = z.infer<typeof verifyPhoneSchema>
-export type SocialLoginInput = z.infer<typeof socialLoginSchema>
