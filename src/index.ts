@@ -29,6 +29,7 @@ import { prisma } from "./lib/prisma";
 import { optionalAuth } from "./middleware/authMiddleware";
 import rateLimit from "express-rate-limit";
 import { config } from "./config";
+import passport from "./config/passport";
 
 // Load environment variables
 dotenv.config();
@@ -106,7 +107,7 @@ const corsOptions = {
   exposedHeaders: ["X-Access-Token", "X-Refresh-Token"],
 };
 app.use(cors(corsOptions));
-
+app.use(passport.initialize());
 // Health check endpoint
 app.get(["/", "/health"], (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
