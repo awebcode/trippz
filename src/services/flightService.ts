@@ -43,7 +43,9 @@ export class FlightService {
     }
   }
 
-  static async getFlights(params: SearchFlightsInput): Promise<PaginatedResult<any>> {
+  static async getFlights(
+    params: SearchFlightsInput = {} as SearchFlightsInput,
+  ): Promise<PaginatedResult<any>> {
     try {
       const {
         page = 1,
@@ -396,7 +398,7 @@ export class FlightService {
     }
   }
 
-  static async searchFlights(params: SearchFlightsInput): Promise<PaginatedResult<any>> {
+  static async searchFlights(params: SearchFlightsInput= {} as SearchFlightsInput): Promise<PaginatedResult<any>> {
     try {
       return this.getFlights(params);
     } catch (error) {
@@ -408,7 +410,7 @@ export class FlightService {
     }
   }
 
-  static async getFlightAvailability(params: FlightAvailabilityInput) {
+  static async getFlightAvailability(params: FlightAvailabilityInput= {} as FlightAvailabilityInput) {
     try {
       const { flight_id, date, passengers = 1 } = params;
 
@@ -471,7 +473,7 @@ export class FlightService {
   }
 
   // Custom query method for advanced flight searches
-  static async customFlightQuery(params: any): Promise<PaginatedResult<any>> {
+  static async customFlightQuery(params={} as  any): Promise<PaginatedResult<any>> {
     try {
       const {
         page = 1,

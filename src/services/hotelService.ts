@@ -38,7 +38,7 @@ export class HotelService {
     }
   }
 
-  static async getHotels(params: SearchHotelsInput): Promise<PaginatedResult<any>> {
+  static async getHotels(params: SearchHotelsInput = {} as SearchHotelsInput): Promise<PaginatedResult<any>> {
     try {
       const {
         page = 1,
@@ -459,7 +459,7 @@ export class HotelService {
     }
   }
 
-  static async searchHotels(params: SearchHotelsInput): Promise<PaginatedResult<any>> {
+  static async searchHotels(params: SearchHotelsInput= {} as SearchHotelsInput): Promise<PaginatedResult<any>> {
     try {
       return this.getHotels(params);
     } catch (error) {
@@ -471,7 +471,7 @@ export class HotelService {
     }
   }
 
-  static async getHotelAvailability(params: HotelAvailabilityInput) {
+  static async getHotelAvailability(params: HotelAvailabilityInput= {} as HotelAvailabilityInput) {
     try {
       const { hotel_id, check_in, check_out, guests = 1, rooms = 1 } = params;
 
@@ -559,7 +559,7 @@ export class HotelService {
   }
 
   // Custom query method for advanced hotel searches
-  static async customHotelQuery(params: any): Promise<PaginatedResult<any>> {
+  static async customHotelQuery(params= {} as any): Promise<PaginatedResult<any>> {
     try {
       const {
         page = 1,

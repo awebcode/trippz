@@ -51,7 +51,7 @@ export class TripService {
     }
   }
 
-  static async getTrips(params: SearchTripsInput): Promise<PaginatedResult<any>> {
+  static async getTrips(params: SearchTripsInput = {} as SearchTripsInput): Promise<PaginatedResult<any>> {
     try {
       const {
         page = 1,
@@ -541,7 +541,7 @@ export class TripService {
     }
   }
 
-  static async searchTrips(params: SearchTripsInput): Promise<PaginatedResult<any>> {
+  static async searchTrips(params: SearchTripsInput= {} as SearchTripsInput): Promise<PaginatedResult<any>> {
     try {
       return this.getTrips(params);
     } catch (error) {
@@ -553,7 +553,7 @@ export class TripService {
     }
   }
 
-  static async getTripAvailability(params: TripAvailabilityInput) {
+  static async getTripAvailability(params: TripAvailabilityInput= {} as TripAvailabilityInput): Promise<PaginatedResult<any>> {
     try {
       const { trip_id, start_date, end_date, participants = 1 } = params;
 
@@ -635,7 +635,7 @@ export class TripService {
   }
 
   // Custom query method for advanced trip searches
-  static async customTripQuery(params: any): Promise<PaginatedResult<any>> {
+  static async customTripQuery(params= {} as any): Promise<PaginatedResult<any>> {
     try {
       const {
         page = 1,
