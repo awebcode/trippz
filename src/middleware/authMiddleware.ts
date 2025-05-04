@@ -47,7 +47,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     let accessToken = req.headers["x-trippz-access-token"] as string | undefined;
     let refreshToken = req.headers["x-trippz-refresh-token"] as string | undefined;
     if (
-      config.auth.useCookieAuth!==true &&
+      config.auth.useCookieAuth !== true &&
       req.headers.authorization &&
       req.headers.authorization.startsWith("Bearer") &&
       req.headers.authorization.split(" ")[1].startsWith("ey")
@@ -58,10 +58,10 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     }
 
     // 2) Fallback: Try getting tokens from cookies if headers are missing
-    if (!accessToken && req.cookies?.accessToken) {
+    if (!accessToken && !accessToken?.startsWith("ey") && req.cookies?.accessToken) {
       accessToken = req.cookies.accessToken;
     }
-    if (!refreshToken && req.cookies?.refreshToken) {
+    if (!refreshToken && !refreshToken?.startsWith("ey") && req.cookies?.refreshToken) {
       refreshToken = req.cookies.refreshToken;
     }
 
@@ -88,7 +88,13 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
         req.currentUser = user;
         req.sessionId = session.id;
         req.user = user;
-        if (!req.validatedQuery) req.validatedQuery = req.query;
+        if (!req.validatedQuery) {
+          req.validatedQuery = {
+            ...req.query,
+            page: parseInt(req.query.page as string) || 1,
+            limit: parseInt(req.query.limit as string) || 10,
+          };
+        }
 
         return next();
       } catch (error) {
@@ -144,7 +150,12 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
       req.currentUser = user;
       req.sessionId = session.id;
       req.user = user;
-      if (!req.validatedQuery) req.validatedQuery = req.query;
+      if (!req.validatedQuery)
+        req.validatedQuery = {
+          ...req.query,
+          page: parseInt(req.query.page as string) || 1,
+          limit: parseInt(req.query.limit as string) || 10,
+        };
 
       return next();
     } catch (error) {
@@ -172,7 +183,11 @@ export const restrictTo = (...roles: string[]) => {
       );
     }
     if (!req.validatedQuery) {
-      req.validatedQuery = req.query;
+      req.validatedQuery = {
+        ...req.query,
+        page: parseInt(req.query.page as string) || 1,
+        limit: parseInt(req.query.limit as string) || 10,
+      };
     }
 
     next();
