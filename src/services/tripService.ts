@@ -553,7 +553,7 @@ export class TripService {
     }
   }
 
-  static async getTripAvailability(params: TripAvailabilityInput= {} as TripAvailabilityInput): Promise<PaginatedResult<any>> {
+  static async getTripAvailability(params: TripAvailabilityInput= {} as TripAvailabilityInput): Promise<PaginatedResult<any|object>> {
     try {
       const { trip_id, start_date, end_date, participants = 1 } = params;
 
@@ -624,7 +624,7 @@ export class TripService {
           start_date: start_date,
           end_date: end_date,
         },
-      };
+      } as any;
     } catch (error) {
       logger.error(`Error in getTripAvailability: ${error}`);
       if (error instanceof AppError) {

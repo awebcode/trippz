@@ -1,3 +1,4 @@
+import  bcrypt  from "bcrypt";
 import { prisma } from "../src/lib/prisma"
 import { faker } from "@faker-js/faker"
 import { logger } from "../src/utils/logger"
@@ -62,6 +63,25 @@ async function seed() {
     // Seed Users (LIMIT records)
     const users: any = []
     logger.info("Seeding users...")
+
+      const hashedPass=await bcrypt.hash("admin_pass",10)
+
+      await prisma.user.create({
+        data: {
+          id: faker.string.uuid(),
+          first_name: "Trippz",
+          last_name: "Admin",
+          email: "admin@trippz.com",
+          phone_number: faker.phone.number(),
+          password_hash: hashedPass,
+          role: "ADMIN",
+          email_verified: faker.datatype.boolean(),
+          phone_verified: faker.datatype.boolean(),
+          date_of_birth: faker.date.birthdate(),
+          address: faker.location.streetAddress(),
+          profile_picture: faker.image.avatar(),
+        },
+      })
     for (let i = 0; i < LIMIT; i++) {
       const user = await prisma.user.create({
         data: {
