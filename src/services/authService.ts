@@ -101,10 +101,10 @@ export class AuthService {
       });
 
       // Send verification emails and SMS (uncomment when ready)
-      // await EmailService.sendVerificationEmail(data.email, emailVerificationToken);
-      // if (data.phone_number && phoneVerificationCode) {
-      //   await SmsService.sendVerificationSms(data.phone_number, phoneVerificationCode);
-      // }
+      await EmailService.sendVerificationEmail(data.email, emailVerificationToken);
+      if (data.phone_number && phoneVerificationCode) {
+        await SmsService.sendVerificationSms(data.phone_number, phoneVerificationCode);
+      }
 
       // Create new UserSession
       const userSession = await prisma.userSession.create({

@@ -20,7 +20,7 @@ export class SmsService {
       return message
     } catch (error) {
       logger.error(`Error sending verification SMS: ${error}`)
-      throw error
+      // throw error
     }
     // return `Your Trippz verification code is: ${code}`
   }
@@ -37,7 +37,7 @@ export class SmsService {
       return message
     } catch (error) {
       logger.error(`Error sending booking confirmation SMS: ${error}`)
-      throw error
+      // throw error
     }
     // }
     // return `Your Trippz booking (ID: ${bookingId}) has been confirmed! Thank you for choosing Trippz.`
@@ -55,7 +55,7 @@ export class SmsService {
       return message
     } catch (error) {
       logger.error(`Error sending booking cancellation SMS: ${error}`)
-      throw error
+      // throw error
     }
     // }
     // return `Your Trippz booking (ID: ${bookingId}) has been cancelled. We hope to see you again soon!`
@@ -75,7 +75,7 @@ export class SmsService {
       return message
     } catch (error) {
       logger.error(`Error sending booking status update SMS: ${error}`)
-      throw error
+      // throw error
     }
     // }
     // return `Your Trippz booking (ID: ${bookingId}) has been updated. Check your dashboard for details.`
@@ -93,7 +93,7 @@ export class SmsService {
       return message
     } catch (error) {
       logger.error(`Error sending notification SMS: ${error}`)
-      throw error
+      // throw error
     }
   }
 }

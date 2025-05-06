@@ -35,6 +35,24 @@ export const config = {
   auth: {
     useCookieAuth: process.env.USE_COOKIE_AUTH === "true",
   },
+  smtp: {
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || "587"), 
+    secure: false, // Use TLS
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    fallback: {
+      host: process.env.SMTP_FALLBACK_HOST,
+      port: parseInt(process.env.SMTP_FALLBACK_PORT || "587"),
+      secure: false, // Use TLS
+      auth: {
+        user: process.env.SMTP_FALLBACK_USER,
+        pass: process.env.SMTP_FALLBACK_PASS,
+      },
+    },
+  },
 
   // Resend Configuration
   resend: {
