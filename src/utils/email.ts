@@ -8,7 +8,7 @@ import Handlebars from "handlebars";
 import { config } from "../config";
 // Load email templates
 
-const from = `ashikur@orangetoolz.com`
+const from = config.smtp.from || "Trippz <asikurrahaman997@gmail.com>";
 
 const loadTemplate = (templateName: string) => {
   try {
@@ -117,14 +117,10 @@ const sendEmail = async (emailOptions: {
   try {
     // Try primary SMTP
 
-    // Add Postmark-specific header
-    const headers = {
-      "X-PM-Message-Stream": "broadcast",
-    };
+   
 
     const primaryTransport = nodemailer.createTransport({
       ...primaryConfig,
-      headers,
     });
     const result = await primaryTransport.sendMail(emailOptions);
     logger.info(`Email sent via primary SMTP to ${emailOptions.to}`);

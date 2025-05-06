@@ -35,10 +35,15 @@ export const config = {
   auth: {
     useCookieAuth: process.env.USE_COOKIE_AUTH === "true",
   },
+  brevo: {
+    apiKey: process.env.BREVO_API_KEY || "",
+    senderName: process.env.BREVO_SENDER_NAME || "Trippz",
+  },
   smtp: {
+    from: process.env.SMTP_FROM,
     host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || "587"), 
-    secure: false, // Use TLS
+    port: parseInt(process.env.SMTP_PORT || "587"),
+    secure: true, // Use TLS
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
