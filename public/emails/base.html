@@ -1,43 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trippz</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
       margin: 0;
       padding: 0;
       background-color: #f9fafb;
       color: #1f2937;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
     .container {
       max-width: 600px;
-      margin: 0 auto;
+      margin: 20px auto;
       background-color: #ffffff;
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     .header {
       background-color: #4F46E5;
-      padding: 24px;
+      padding: 20px;
       text-align: center;
     }
     .header h1 {
-      color: white;
+      color: #ffffff;
       margin: 0;
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 700;
+      line-height: 1.2;
     }
     .content {
-      padding: 32px 24px;
+      padding: 24px;
       line-height: 1.6;
+      font-size: 16px;
     }
     .footer {
       text-align: center;
-      padding: 20px;
+      padding: 16px;
       color: #6b7280;
       font-size: 12px;
       background-color: #f3f4f6;
@@ -46,12 +50,15 @@
     .button {
       display: inline-block;
       background-color: #4F46E5;
-      color: white;
+      color: #ffffff !important; /* Ensure text is white */
       text-decoration: none;
       padding: 12px 24px;
       border-radius: 6px;
       font-weight: 600;
+      font-size: 16px;
       margin: 16px 0;
+      transition: background-color 0.2s ease;
+      text-align: center;
     }
     .button:hover {
       background-color: #4338ca;
@@ -61,21 +68,58 @@
       border-radius: 6px;
       padding: 16px;
       margin: 16px 0;
+      font-size: 14px;
     }
     .divider {
       height: 1px;
       background-color: #e5e7eb;
-      margin: 24px 0;
+      margin: 20px 0;
     }
     .social-links {
       text-align: center;
-      margin-top: 16px;
+      margin-top: 12px;
     }
     .social-links a {
       display: inline-block;
-      margin: 0 8px;
-      color: #6b7280;
+      margin: 0 10px;
+      color: #4F46E5;
       text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .social-links a:hover {
+      color: #4338ca;
+    }
+    /* Responsive Design */
+    @media only screen and (max-width: 600px) {
+      .container {
+        margin: 10px;
+        border-radius: 4px;
+      }
+      .header {
+        padding: 16px;
+      }
+      .header h1 {
+        font-size: 22px;
+      }
+      .content {
+        padding: 16px;
+        font-size: 15px;
+      }
+      .button {
+        padding: 10px 20px;
+        font-size: 15px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .footer {
+        padding: 12px;
+      }
+    }
+    /* Email Client Fallbacks */
+    a[x-apple-data-detectors] {
+      color: inherit !important;
+      text-decoration: none !important;
     }
   </style>
 </head>
@@ -87,13 +131,16 @@
     <div class="content">
       {{> content}}
     </div>
-    <div class="footer">
-      <p>&copy; {{year}} Trippz. All rights reserved.</p>
-      <p>If you have any questions, please contact us at <a href="mailto:support@trippz.com">support@trippz.com</a></p>
-      <div class="social-links">
-        <a href="https://facebook.com/trippz">Facebook</a> |
-        <a href="https://twitter.com/trippz">Twitter</a> |
-        <a href="https://instagram.com/trippz">Instagram</a>
+    <div class="footer" role="contentinfo">
+      <p>© {{year}} Trippz. All rights reserved.</p>
+      <p>
+        If you have any questions, please contact us at 
+        <a href="mailto:support@trippz.com" style="color: #4F46E5; text-decoration: none;">support@trippz.com</a>
+      </p>
+      <div class="social-links" aria-label="Social media links">
+        <a href="https://facebook.com/trippz" style="color: #4F46E5;">Facebook</a> |
+        <a href="https://twitter.com/trippz" style="color: #4F46E5;">Twitter</a> |
+        <a href="https://instagram.com/trippz" style="color: #4F46E5;">Instagram</a>
       </div>
     </div>
   </div>
