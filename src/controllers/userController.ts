@@ -46,6 +46,7 @@ export class UserController {
       })
     }
 
+
     const result = await UserService.uploadProfilePicture(userId, req.file)
 
     res.status(200).json({

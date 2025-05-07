@@ -57,6 +57,7 @@ export const updateTripSchema = z.object({
 export const searchTripsSchema = z.object({
   page: z.coerce.number().int().positive().optional().default(1),
   limit: z.coerce.number().int().positive().max(100).optional().default(10),
+  search: z.string().optional(),
   sortBy: z
     .enum(["created_at", "start_date", "end_date", "price", "trip_name"])
     .optional()

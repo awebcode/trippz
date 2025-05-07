@@ -52,6 +52,7 @@ export class FlightService {
         limit = 10,
         sortBy = "departure_time",
         sortOrder = "asc",
+        search,
         from,
         to,
         departure_date,
@@ -68,11 +69,21 @@ export class FlightService {
         min_baggage_allowance,
       } = params;
 
+
       // Calculate pagination values
       const skip = (page - 1) * limit;
 
       // Build where conditions
       const where: any = {};
+
+      if (search) {
+        where.OR = [
+          { flight_number: { contains: search, mode: "insensitive" } },
+          { airline: { contains: search, mode: "insensitive" } },
+          { from_airport: { contains: search, mode: "insensitive" } },
+          { to_airport: { contains: search, mode: "insensitive" } },
+        ];
+      }
 
       if (from) {
         where.from_airport = {
@@ -218,7 +229,6 @@ export class FlightService {
       const totalPages = Math.ceil(filteredCount / limit);
 
       return {
-        data: processedFlights,
         metadata: {
           totalCount,
           filteredCount,
@@ -228,6 +238,7 @@ export class FlightService {
           hasNextPage: page < totalPages,
           hasPreviousPage: page > 1,
         },
+        data: processedFlights,
       };
     } catch (error) {
       logger.error(`Error in getFlights: ${error}`);

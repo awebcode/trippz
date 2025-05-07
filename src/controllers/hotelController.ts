@@ -6,12 +6,14 @@ import { AppError } from "../utils/appError";
 export class HotelController {
   static getAllHotels = catchAsync(
     async (req: Request, res: Response, next: NextFunction) => {
-      const hotels = await HotelService.getHotels(req.validatedQuery);
+      const hotels = await HotelService.getHotels({
+        ...req.query,
+        ...req.validatedQuery,
+      });
 
       res.status(200).json({
         success: true,
-        data: hotels.data,
-        metadata: hotels.metadata,
+        ...hotels,
       });
     }
   );

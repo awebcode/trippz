@@ -1,8 +1,8 @@
-import { prisma } from "../lib/prisma"
-import { AppError } from "../utils/appError"
-import { logger } from "../utils/logger"
-import type { DestinationInput } from "../validators/destinationValidators"
-import { uploadToCloudinary } from "../utils/fileUpload"
+import { prisma } from "../lib/prisma";
+import { AppError } from "../utils/appError";
+import { logger } from "../utils/logger";
+import type { DestinationInput } from "../validators/destinationValidators";
+import { uploadToCloudinary } from "../utils/fileUpload";
 
 export class DestinationService {
   static async createDestination(data: DestinationInput, files?: Express.Multer.File[]) {
@@ -27,13 +27,16 @@ export class DestinationService {
           meta_title: data.meta_title || data.name,
           meta_description: data.meta_description || data.description.substring(0, 160),
         },
-      })
+      });
 
       // Upload images if provided
       if (files && files.length > 0) {
         await Promise.all(
           files.map(async (file, index) => {
-            const uploadResult = await uploadToCloudinary(file.path, "trippz/destinations")
+            const uploadResult = await uploadToCloudinary(
+              file.path,
+              "trippz/destinations"
+            );
             await prisma.image.create({
               data: {
                 destination_id: destination.id,
@@ -42,29 +45,37 @@ export class DestinationService {
                 is_featured: index === 0, // First image is featured by default
                 alt_text: `${destination.name} - ${index + 1}`,
               },
-            })
-          }),
-        )
+            });
+          })
+        );
       }
 
-      return destination
+      return destination;
     } catch (error) {
-      logger.error(`Error in createDestination: ${error}`)
+      logger.error(`Error in createDestination: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to create destination", 500)
+      throw new AppError("Failed to create destination", 500);
     }
   }
 
   static async getDestinations(query: any = {}) {
     try {
-      const { page = 1, limit = 20, search, country, featured, sortBy = "name", sortOrder = "asc" } = query
+      const {
+        page = 1,
+        limit = 20,
+        search,
+        country,
+        featured,
+        sortBy = "name",
+        sortOrder = "asc",
+      } = query;
 
-      const skip = (page - 1) * limit
+      const skip = (page - 1) * limit;
 
       // Build where conditions
-      const where: any = {}
+      const where: any = {};
 
       if (search) {
         where.OR = [
@@ -72,19 +83,19 @@ export class DestinationService {
           { country: { contains: search, mode: "insensitive" } },
           { city: { contains: search, mode: "insensitive" } },
           { description: { contains: search, mode: "insensitive" } },
-        ]
+        ];
       }
 
       if (country) {
-        where.country = { contains: country, mode: "insensitive" }
+        where.country = { contains: country, mode: "insensitive" };
       }
 
       if (featured !== undefined) {
-        where.featured = featured === "true"
+        where.featured = featured === "true";
       }
 
       // Get total count
-      const totalCount = await prisma.destination.count({ where })
+      const totalCount = await prisma.destination.count({ where });
 
       // Get destinations with pagination
       const destinations = await prisma.destination.findMany({
@@ -99,28 +110,29 @@ export class DestinationService {
         },
         skip,
         take: Number.parseInt(limit.toString()),
-      })
+      });
 
       // Calculate total pages
-      const totalPages = Math.ceil(totalCount / Number.parseInt(limit.toString()))
+      const totalPages = Math.ceil(totalCount / Number.parseInt(limit.toString()));
 
       return {
-        data: destinations,
         metadata: {
           totalCount,
+          filteredCount: destinations.length,
           totalPages,
           currentPage: Number.parseInt(page.toString()),
           limit: Number.parseInt(limit.toString()),
           hasNextPage: Number.parseInt(page.toString()) < totalPages,
           hasPreviousPage: Number.parseInt(page.toString()) > 1,
         },
-      }
+        data: destinations,
+      };
     } catch (error) {
-      logger.error(`Error in getDestinations: ${error}`)
+      logger.error(`Error in getDestinations: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to get destinations", 500)
+      throw new AppError("Failed to get destinations", 500);
     }
   }
 
@@ -143,30 +155,34 @@ export class DestinationService {
             take: 5,
           },
         },
-      })
+      });
 
       if (!destination) {
-        throw new AppError("Destination not found", 404)
+        throw new AppError("Destination not found", 404);
       }
 
-      return destination
+      return destination;
     } catch (error) {
-      logger.error(`Error in getDestinationById: ${error}`)
+      logger.error(`Error in getDestinationById: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to get destination", 500)
+      throw new AppError("Failed to get destination", 500);
     }
   }
 
-  static async updateDestination(id: string, data: DestinationInput, files?: Express.Multer.File[]) {
+  static async updateDestination(
+    id: string,
+    data: DestinationInput,
+    files?: Express.Multer.File[]
+  ) {
     try {
       const destination = await prisma.destination.findUnique({
         where: { id },
-      })
+      });
 
       if (!destination) {
-        throw new AppError("Destination not found", 404)
+        throw new AppError("Destination not found", 404);
       }
 
       const updatedDestination = await prisma.destination.update({
@@ -190,13 +206,16 @@ export class DestinationService {
           meta_title: data.meta_title,
           meta_description: data.meta_description,
         },
-      })
+      });
 
       // Upload images if provided
       if (files && files.length > 0) {
         await Promise.all(
           files.map(async (file, index) => {
-            const uploadResult = await uploadToCloudinary(file.path, "trippz/destinations")
+            const uploadResult = await uploadToCloudinary(
+              file.path,
+              "trippz/destinations"
+            );
             await prisma.image.create({
               data: {
                 destination_id: id,
@@ -204,18 +223,18 @@ export class DestinationService {
                 file_type: file.mimetype,
                 alt_text: `${updatedDestination.name} - ${index + 1}`,
               },
-            })
-          }),
-        )
+            });
+          })
+        );
       }
 
-      return updatedDestination
+      return updatedDestination;
     } catch (error) {
-      logger.error(`Error in updateDestination: ${error}`)
+      logger.error(`Error in updateDestination: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to update destination", 500)
+      throw new AppError("Failed to update destination", 500);
     }
   }
 
@@ -226,34 +245,37 @@ export class DestinationService {
         include: {
           packages: true,
         },
-      })
+      });
 
       if (!destination) {
-        throw new AppError("Destination not found", 404)
+        throw new AppError("Destination not found", 404);
       }
 
       // Check if destination is used in any packages
       if (destination.packages.length > 0) {
-        throw new AppError("Cannot delete destination that is used in travel packages", 400)
+        throw new AppError(
+          "Cannot delete destination that is used in travel packages",
+          400
+        );
       }
 
       // Delete destination images
       await prisma.image.deleteMany({
         where: { destination_id: id },
-      })
+      });
 
       // Delete destination
       await prisma.destination.delete({
         where: { id },
-      })
+      });
 
-      return { message: "Destination deleted successfully" }
+      return { message: "Destination deleted successfully" };
     } catch (error) {
-      logger.error(`Error in deleteDestination: ${error}`)
+      logger.error(`Error in deleteDestination: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to delete destination", 500)
+      throw new AppError("Failed to delete destination", 500);
     }
   }
 
@@ -264,45 +286,45 @@ export class DestinationService {
         include: {
           images: true,
         },
-      })
+      });
 
       if (!destination) {
-        throw new AppError("Destination not found", 404)
+        throw new AppError("Destination not found", 404);
       }
 
-      const image = destination.images.find((img) => img.id === imageId)
+      const image = destination.images.find((img) => img.id === imageId);
 
       if (!image) {
-        throw new AppError("Image not found for this destination", 404)
+        throw new AppError("Image not found for this destination", 404);
       }
 
       // Reset all images to not featured
       await prisma.image.updateMany({
         where: { destination_id: id },
         data: { is_featured: false },
-      })
+      });
 
       // Set the selected image as featured
       await prisma.image.update({
         where: { id: imageId },
         data: { is_featured: true },
-      })
+      });
 
-      return { success: true, message: "Featured image updated successfully" }
+      return { success: true, message: "Featured image updated successfully" };
     } catch (error) {
-      logger.error(`Error in setFeaturedImage: ${error}`)
+      logger.error(`Error in setFeaturedImage: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to set featured image", 500)
+      throw new AppError("Failed to set featured image", 500);
     }
   }
 
   static async getTrendingDestinations(limit = 5) {
     try {
       // Get destinations with the most bookings in the last 30 days
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const trendingDestinations = await prisma.$queryRaw`
         SELECT d.*, COUNT(b.id) as booking_count
@@ -313,19 +335,24 @@ export class DestinationService {
         GROUP BY d."id"
         ORDER BY booking_count DESC
         LIMIT ${limit}
-      `
+      `;
 
-      return trendingDestinations
+      return trendingDestinations;
     } catch (error) {
-      logger.error(`Error in getTrendingDestinations: ${error}`)
+      logger.error(`Error in getTrendingDestinations: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to get trending destinations", 500)
+      throw new AppError("Failed to get trending destinations", 500);
     }
   }
 
-  static async getNearbyDestinations(latitude: number, longitude: number, radiusKm = 100, limit = 5) {
+  static async getNearbyDestinations(
+    latitude: number,
+    longitude: number,
+    radiusKm = 100,
+    limit = 5
+  ) {
     try {
       // Calculate nearby destinations using Haversine formula
       const nearbyDestinations = await prisma.$queryRaw`
@@ -336,15 +363,15 @@ export class DestinationService {
         HAVING distance < ${radiusKm}
         ORDER BY distance
         LIMIT ${limit}
-      `
+      `;
 
-      return nearbyDestinations
+      return nearbyDestinations;
     } catch (error) {
-      logger.error(`Error in getNearbyDestinations: ${error}`)
+      logger.error(`Error in getNearbyDestinations: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to get nearby destinations", 500)
+      throw new AppError("Failed to get nearby destinations", 500);
     }
   }
 
@@ -353,14 +380,14 @@ export class DestinationService {
       const destination = await prisma.destination.findUnique({
         where: { id },
         select: { latitude: true, longitude: true, name: true },
-      })
+      });
 
       if (!destination) {
-        throw new AppError("Destination not found", 404)
+        throw new AppError("Destination not found", 404);
       }
 
       if (!destination.latitude || !destination.longitude) {
-        throw new AppError("Destination coordinates not available", 400)
+        throw new AppError("Destination coordinates not available", 400);
       }
 
       // In a real implementation, you would call a weather API here
@@ -381,15 +408,15 @@ export class DestinationService {
           { date: "2023-06-04", high: 22, low: 16, condition: "Light Rain" },
           { date: "2023-06-05", high: 21, low: 15, condition: "Showers" },
         ],
-      }
+      };
 
-      return weather
+      return weather;
     } catch (error) {
-      logger.error(`Error in getDestinationWeather: ${error}`)
+      logger.error(`Error in getDestinationWeather: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to get destination weather", 500)
+      throw new AppError("Failed to get destination weather", 500);
     }
   }
 
@@ -397,10 +424,10 @@ export class DestinationService {
     try {
       const destination = await prisma.destination.findUnique({
         where: { id },
-      })
+      });
 
       if (!destination) {
-        throw new AppError("Destination not found", 404)
+        throw new AppError("Destination not found", 404);
       }
 
       // In a real implementation, you would query a database or external API
@@ -433,15 +460,15 @@ export class DestinationService {
           image_url: "https://example.com/tower.jpg",
           website: "https://tower.example.com",
         },
-      ]
+      ];
 
-      return attractions.slice(0, limit)
+      return attractions.slice(0, limit);
     } catch (error) {
-      logger.error(`Error in getDestinationAttractions: ${error}`)
+      logger.error(`Error in getDestinationAttractions: ${error}`);
       if (error instanceof AppError) {
-        throw error
+        throw error;
       }
-      throw new AppError("Failed to get destination attractions", 500)
+      throw new AppError("Failed to get destination attractions", 500);
     }
   }
 }

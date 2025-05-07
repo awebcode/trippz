@@ -1,10 +1,9 @@
-
 import { logger } from "./logger";
 import { config } from "../config";
 import axios from "axios";
 // Initialize Brevo SMS API client
 
-const senderName = config.brevo.senderName || "Trippz"
+const senderName = config.brevo.senderName || "Trippz";
 
 export class SmsService {
   static async sendVerificationSms(phoneNumber: string, code: string) {

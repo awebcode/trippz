@@ -7,7 +7,7 @@ export class AdminController {
   // User Management
   static getUsers = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const query = req.validatedQuery as unknown as UserQuery
-    const users = await AdminService.getUsers(query)
+    const users = await AdminService.getUsers({ ...req.query, ...query })
 
     res.status(200).json({
       success: true,

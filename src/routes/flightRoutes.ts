@@ -3,12 +3,16 @@ import { FlightController } from "../controllers/flightController"
 import { protect, restrictTo } from "../middleware/authMiddleware"
 import { validateRequest } from "../middleware/validateRequest"
 import { createFlightSchema, updateFlightSchema } from "../validators/flightValidators"
-import { idParamSchema } from "../validators/commonValidators"
+import { idParamSchema, paginationQuerySchema } from "../validators/commonValidators"
 
 const router = express.Router()
 
 // Public routes
-router.get("/", FlightController.getAllFlights)
+router.get(
+  "/",
+  validateRequest({ query: paginationQuerySchema }),
+  FlightController.getAllFlights
+);
 router.get("/search", FlightController.searchFlights)
 router.get("/:id", validateRequest({ params: idParamSchema }), FlightController.getFlightById)
 router.get("/:id/availability", validateRequest({ params: idParamSchema }), FlightController.getFlightAvailability)

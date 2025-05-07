@@ -51,7 +51,9 @@ export class TripService {
     }
   }
 
-  static async getTrips(params: SearchTripsInput = {} as SearchTripsInput): Promise<PaginatedResult<any>> {
+  static async getTrips(
+    params: SearchTripsInput = {} as SearchTripsInput
+  ): Promise<PaginatedResult<any>> {
     try {
       const {
         page = 1,
@@ -60,6 +62,7 @@ export class TripService {
         sortOrder = "desc",
         trip_type,
         destination,
+        search,
         start_date,
         end_date,
         minPrice,
@@ -84,6 +87,22 @@ export class TripService {
 
       // Build where conditions
       const where: any = {};
+
+      if (search) {
+        where.OR = [
+          { trip_name: { contains: search, mode: "insensitive" } },
+          { description: { contains: search, mode: "insensitive" } },
+          {
+            tripDestinations: {
+              some: {
+                destination: {
+                  name: { contains: search, mode: "insensitive" },
+                },
+              },
+            },
+          },
+        ];
+      }
 
       if (trip_type) {
         where.trip_type = trip_type;
@@ -541,7 +560,9 @@ export class TripService {
     }
   }
 
-  static async searchTrips(params: SearchTripsInput= {} as SearchTripsInput): Promise<PaginatedResult<any>> {
+  static async searchTrips(
+    params: SearchTripsInput = {} as SearchTripsInput
+  ): Promise<PaginatedResult<any>> {
     try {
       return this.getTrips(params);
     } catch (error) {
@@ -553,7 +574,9 @@ export class TripService {
     }
   }
 
-  static async getTripAvailability(params: TripAvailabilityInput= {} as TripAvailabilityInput): Promise<PaginatedResult<any|object>> {
+  static async getTripAvailability(
+    params: TripAvailabilityInput = {} as TripAvailabilityInput
+  ): Promise<PaginatedResult<any | object>> {
     try {
       const { trip_id, start_date, end_date, participants = 1 } = params;
 
@@ -635,7 +658,7 @@ export class TripService {
   }
 
   // Custom query method for advanced trip searches
-  static async customTripQuery(params= {} as any): Promise<PaginatedResult<any>> {
+  static async customTripQuery(params = {} as any): Promise<PaginatedResult<any>> {
     try {
       const {
         page = 1,

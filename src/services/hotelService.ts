@@ -46,6 +46,7 @@ export class HotelService {
         sortBy = "created_at",
         sortOrder = "desc",
         location,
+        search,
         city,
         country,
         check_in,
@@ -76,6 +77,16 @@ export class HotelService {
 
       // Build where conditions
       const where: any = {};
+
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: "insensitive" } },
+          { address: { contains: search, mode: "insensitive" } },
+          { description: { contains: search, mode: "insensitive" } },
+          { amenities: { contains: search, mode: "insensitive" } },
+          { cancellation_policy: { contains: search, mode: "insensitive" } },
+        ];
+      }
 
       if (location) {
         where.address = {

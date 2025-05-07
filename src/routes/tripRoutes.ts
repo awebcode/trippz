@@ -3,12 +3,12 @@ import { TripController } from "../controllers/tripController"
 import { protect } from "../middleware/authMiddleware"
 import { validateRequest } from "../middleware/validateRequest"
 import { createTripSchema, updateTripSchema } from "../validators/tripValidators"
-import { idParamSchema } from "../validators/commonValidators"
+import { idParamSchema, paginationQuerySchema } from "../validators/commonValidators"
 
 const router = express.Router()
 
 // Public routes
-router.get("/", TripController.getAllTrips)
+router.get("/", validateRequest({ query: paginationQuerySchema }), TripController.getAllTrips)
 router.get("/search", TripController.searchTrips)
 router.get("/:id", validateRequest({ params: idParamSchema }), TripController.getTripById)
 router.get("/:id/availability", validateRequest({ params: idParamSchema }), TripController.getTripAvailability)

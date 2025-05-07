@@ -6,12 +6,13 @@ import { AppError } from "../utils/appError";
 export class FlightController {
   static getAllFlights = catchAsync(
     async (req: Request, res: Response, next: NextFunction) => {
-      const flights = await FlightService.getFlights(req.validatedQuery);
+
+      const flights = await FlightService.getFlights({...req.query,...req.validatedQuery});
+
 
       res.status(200).json({
         success: true,
-        data: flights.data,
-        metadata: flights.metadata,
+        ...flights
       });
     }
   );

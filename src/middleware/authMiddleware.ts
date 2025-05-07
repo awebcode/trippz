@@ -24,7 +24,6 @@ declare global {
 // Cookie options
 export const getCookieOptions = (expires?: number) => {
   const maxAge = expires || 30 * 24 * 60 * 60 * 1000;
-  console.log("Cookie maxAge:", maxAge);
   const isProduction = config.server.nodeEnv === "production";
   return {
     httpOnly: true,
@@ -34,92 +33,93 @@ export const getCookieOptions = (expires?: number) => {
     path: "/",
   };
 };
+
 /**
  * Auth Middleware
- * - Verifies access token from cookies or Authorization header
- * - Refreshes tokens if access token is expired using refresh token
+ * - Requires access token (mandatory) from headers (x-trippz-access-token) or cookies (accessToken)
+ * - Treats refresh token as optional from headers (x-trippz-refresh-token) or cookies (refreshToken)
+ * - Ensures refresh token, if provided, is from the same source as access token
+ * - Refreshes tokens if access token is expired and refresh token is valid
  * - Validates session in DB
  * - Attaches user and session info to req
+ * - Sets new tokens only when valid or successfully refreshed
  */
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // 1) Try getting tokens from custom headers
-    let accessToken = req.headers["x-trippz-access-token"] as string | undefined;
-    let refreshToken = req.headers["x-trippz-refresh-token"] as string | undefined;
+    // 1) Get tokens from headers or cookies
+    const headerAccessToken = req.headers["x-trippz-access-token"] as string | undefined;
+    const headerRefreshToken = req.headers["x-trippz-refresh-token"] as
+      | string
+      | undefined;
+    const cookieAccessToken = req.cookies?.accessToken;
+    const cookieRefreshToken = req.cookies?.refreshToken;
+
+    // Reject Authorization header if present
     if (
-      config.auth.useCookieAuth !== true &&
       req.headers.authorization &&
       req.headers.authorization.startsWith("Bearer") &&
-      req.headers.authorization.split(" ")[1].startsWith("ey")
+      req.headers.authorization.split(" ")[1]?.startsWith("ey")
     ) {
       return next(
         new AppError("Use X-TRIPPZ headers only, not Authorization header.", 400)
       );
     }
 
-    // 2) Fallback: Try getting tokens from cookies if headers are missing
-    if (!accessToken && !accessToken?.startsWith("ey") && req.cookies?.accessToken) {
-      accessToken = req.cookies.accessToken;
+    // 2) Determine access token (mandatory) and refresh token (optional)
+    let accessToken: string | undefined;
+    let refreshToken: string | undefined;
+    let tokenSource: "headers" | "cookies" | null = null;
+
+    if (headerAccessToken && headerAccessToken.startsWith("ey")) {
+      accessToken = headerAccessToken;
+      refreshToken = headerRefreshToken?.startsWith("ey")
+        ? headerRefreshToken
+        : undefined;
+      tokenSource = "headers";
+    } else if (cookieAccessToken && cookieAccessToken.startsWith("ey")) {
+      accessToken = cookieAccessToken;
+      refreshToken = cookieRefreshToken?.startsWith("ey")
+        ? cookieRefreshToken
+        : undefined;
+      tokenSource = "cookies";
+    } else {
+      return next(
+        new AppError("Access token is required. Please login and try again .", 401)
+      );
     }
-    if (!refreshToken && !refreshToken?.startsWith("ey") && req.cookies?.refreshToken) {
-      refreshToken = req.cookies.refreshToken;
-    }
 
-    if (!accessToken && !refreshToken) {
-      return next(new AppError("Authentication required. Please login.", 401));
-    }
-
-    // 3) Try verifying access token
-    if (accessToken) {
-      try {
-        const decoded = await AuthService.VerifyJwtToken(accessToken, config.jwt.secret);
-
-        const session = await AuthService.validateSession(decoded.id, decoded.session_id);
-
-        const user = await prisma.user.findUnique({
-          where: { id: decoded.id },
-          select: { id: true, role: true, email: true, first_name: true },
-        });
-
-        if (!user) {
-          return next(new AppError("User not found.", 401));
-        }
-
-        req.currentUser = user;
-        req.sessionId = session.id;
-        req.user = user;
-        if (!req.validatedQuery) {
-          req.validatedQuery = {
-            ...req.query,
-            page: parseInt(req.query.page as string) || 1,
-            limit: parseInt(req.query.limit as string) || 10,
-          };
-        }
-
-        return next();
-      } catch (error) {
-        if (!(error instanceof AppError) || error.message !== "Token expired") {
-          logger.error(`Access token validation error: ${error}`);
-          return next(error);
-        }
-        logger.info("Access token expired, attempting refresh");
+    // Ensure refresh token, if provided, is from the same source
+    if (refreshToken) {
+      const refreshSource = headerRefreshToken?.startsWith("ey")
+        ? "headers"
+        : cookieRefreshToken?.startsWith("ey")
+          ? "cookies"
+          : null;
+      if (refreshSource !== tokenSource) {
+        return next(
+          new AppError(
+            "Access and refresh tokens must come from the same source (headers or cookies).",
+            401
+          )
+        );
       }
     }
 
-    // 4) If no valid access token, use refresh token
-    if (!refreshToken) {
-      return next(new AppError("Authentication failed. Please login again.", 401));
-    }
+    logger.debug(
+      `Token source: ${tokenSource}, Access: ${accessToken?.slice(0, 10)}..., Refresh: ${refreshToken ? refreshToken.slice(0, 10) + "..." : "none"}`
+    );
 
+    // 3) Try verifying access token
+    let user, session;
     try {
       const decoded = await AuthService.VerifyJwtToken(
-        refreshToken,
-        config.jwt.refreshSecret
+        accessToken as string,
+        config.jwt.secret
       );
 
-      const session = await AuthService.validateSession(decoded.id, decoded.session_id);
+      session = await AuthService.validateSession(decoded.id, decoded.session_id);
 
-      const user = await prisma.user.findUnique({
+      user = await prisma.user.findUnique({
         where: { id: decoded.id },
         select: { id: true, role: true, email: true, first_name: true },
       });
@@ -128,6 +128,54 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
         return next(new AppError("User not found.", 401));
       }
 
+      // Access token is valid, attach user and session
+      req.currentUser = user;
+      req.sessionId = session.id;
+      req.user = user;
+      req.validatedQuery = {
+        ...req.query,
+        page: parseInt(req.query.page as string) || 1,
+        limit: parseInt(req.query.limit as string) || 10,
+      };
+
+      return next();
+    } catch (error) {
+      if (error instanceof AppError && error.message === "Token expired") {
+        logger.info("Access token expired, checking for refresh token");
+      } else {
+        logger.error(`Access token validation error: ${error}`);
+        return next(new AppError("Invalid access token. Please login again.", 401));
+      }
+    }
+
+    // 4) If access token is expired, check for refresh token
+    if (!refreshToken) {
+      return next(
+        new AppError(
+          "Access token expired and no refresh token provided. Please login again.",
+          401
+        )
+      );
+    }
+
+    try {
+      const decoded = await AuthService.VerifyJwtToken(
+        refreshToken,
+        config.jwt.refreshSecret
+      );
+
+      session = await AuthService.validateSession(decoded.id, decoded.session_id);
+
+      user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+        select: { id: true, role: true, email: true, first_name: true },
+      });
+
+      if (!user) {
+        return next(new AppError("User not found. Please login again.", 401));
+      }
+
+      // Generate new tokens
       const newPayload = {
         id: decoded.id,
         first_name: user.first_name,
@@ -139,23 +187,28 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
       const newAccessToken = await AuthService.generateAccessToken(newPayload);
       const newRefreshToken = await AuthService.generateRefreshToken(newPayload);
 
-      // 5) Send back refreshed tokens
-      if (config.auth.useCookieAuth) {
+      // 5) Set new tokens based on source and config
+      if (config.auth.useCookieAuth && tokenSource === "cookies") {
         await AuthService.setAuthCookies(res, newAccessToken, newRefreshToken);
+      } else if (tokenSource === "headers") {
+        res.setHeader("X-TRIPPZ-ACCESS-TOKEN", newAccessToken);
+        res.setHeader("X-TRIPPZ-REFRESH-TOKEN", newRefreshToken);
+      } else {
+        logger.warn(
+          `Token source mismatch: useCookieAuth=${config.auth.useCookieAuth}, tokenSource=${tokenSource}`
+        );
+        // Optionally reject if strict enforcement is needed
       }
 
-      res.setHeader("X-TRIPPZ-ACCESS-TOKEN", newAccessToken);
-      res.setHeader("X-TRIPPZ-REFRESH-TOKEN", newRefreshToken);
-
+      // Attach user and session
       req.currentUser = user;
       req.sessionId = session.id;
       req.user = user;
-      if (!req.validatedQuery)
-        req.validatedQuery = {
-          ...req.query,
-          page: parseInt(req.query.page as string) || 1,
-          limit: parseInt(req.query.limit as string) || 10,
-        };
+      req.validatedQuery = {
+        ...req.query,
+        page: parseInt(req.query.page as string) || 1,
+        limit: parseInt(req.query.limit as string) || 10,
+      };
 
       return next();
     } catch (error) {
@@ -164,7 +217,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     }
   } catch (error) {
     logger.error(`Authentication middleware error: ${error}`);
-    return next(new AppError("Authentication failed", 401));
+    return next(new AppError("Authentication failed. Please login again.", 401));
   }
 };
 
@@ -182,13 +235,11 @@ export const restrictTo = (...roles: string[]) => {
         new AppError("You do not have permission to perform this action.", 403)
       );
     }
-    if (!req.validatedQuery) {
-      req.validatedQuery = {
-        ...req.query,
-        page: parseInt(req.query.page as string) || 1,
-        limit: parseInt(req.query.limit as string) || 10,
-      };
-    }
+    req.validatedQuery = {
+      ...req.query,
+      page: parseInt(req.query.page as string) || 1,
+      limit: parseInt(req.query.limit as string) || 10,
+    };
 
     next();
   };
@@ -199,22 +250,18 @@ export const restrictTo = (...roles: string[]) => {
  */
 export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // 1) Get token from authorization header or cookies
+    // 1) Get token from headers or cookies
     let accessToken: string | undefined;
 
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer") &&
-      req.headers.authorization.split(" ")[1]
-    ) {
-      accessToken = req.headers.authorization.split(" ")[1];
+    if (req.headers["x-trippz-access-token"]) {
+      accessToken = req.headers["x-trippz-access-token"] as string;
     } else if (req.cookies?.accessToken) {
       accessToken = req.cookies.accessToken;
     } else if (req.body?.accessToken) {
       accessToken = req.body.accessToken;
     }
 
-    // If no token, just continue without authentication
+    // If no token, continue without authentication
     if (!accessToken) {
       return next();
     }
@@ -236,16 +283,14 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
         // Attach user and session info to request
         req.currentUser = user;
         req.sessionId = session.id;
-        req.user = user; // For backward compatibility
+        req.user = user;
       }
     } catch (error) {
-      // Just continue without authentication if token is invalid
       logger.debug(`Optional auth token invalid: ${error}`);
     }
 
     next();
   } catch (error) {
-    // Just continue without authentication if there's an error
     logger.error(`Optional auth error: ${error}`);
     next();
   }

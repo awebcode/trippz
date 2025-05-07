@@ -10,8 +10,7 @@ export class TripController {
 
       res.status(200).json({
         success: true,
-        data: trips.data,
-        metadata: trips.metadata,
+        ...trips,
       });
     }
   );
@@ -110,7 +109,10 @@ export class TripController {
 
   static getTripAvailability = catchAsync(
     async (req: Request, res: Response, next: NextFunction) => {
-      const availability = await TripService.getTripAvailability(req.validatedQuery);
+      const availability = await TripService.getTripAvailability({
+        ...req.query,
+        ...req.validatedQuery,
+      });
 
       res.status(200).json({
         success: true,

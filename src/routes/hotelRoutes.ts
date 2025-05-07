@@ -3,12 +3,12 @@ import { HotelController } from "../controllers/hotelController"
 import { protect, restrictTo } from "../middleware/authMiddleware"
 import { validateRequest } from "../middleware/validateRequest"
 import { createHotelSchema, updateHotelSchema } from "../validators/hotelValidators"
-import { idParamSchema } from "../validators/commonValidators"
+import { idParamSchema, paginationQuerySchema } from "../validators/commonValidators"
 
 const router = express.Router()
 
 // Public routes
-router.get("/", HotelController.getAllHotels)
+router.get("/", validateRequest({ query: paginationQuerySchema }), HotelController.getAllHotels)
 router.get("/search", HotelController.searchHotels)
 router.get("/:id", validateRequest({ params: idParamSchema }), HotelController.getHotelById)
 router.get("/:id/availability", validateRequest({ params: idParamSchema }), HotelController.getHotelAvailability)

@@ -59,6 +59,7 @@ export const updateFlightSchema = z.object({
 export const searchFlightsSchema = z.object({
   page: z.coerce.number().int().positive().optional().default(1),
   limit: z.coerce.number().int().positive().max(100).optional().default(10),
+  search: z.string().optional(),
   sortBy: z
     .enum(["departure_time", "arrival_time", "price", "airline", "created_at"])
     .optional()
